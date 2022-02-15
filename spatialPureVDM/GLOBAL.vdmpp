@@ -1,0 +1,8 @@
+class GLOBAL
+
+types
+public Point ::
+    X: nat
+    Y: nat;
+
+end GLOBAL

@@ -1,0 +1,17 @@
+class Relation is subclass of GLOBAL
+
+functions
+public property: Region * Region -> bool
+property (r1, r2) == is subclass responsibility
+
+end Relation
+
+class Intersection is subclass of Relation
+
+functions
+    public property: Region * Region -> bool
+    property(r1, r2) == (
+        exists p1 in set r1.points &
+            exists p2 in set r2.points & p1 = p2
+    )
+end Intersection

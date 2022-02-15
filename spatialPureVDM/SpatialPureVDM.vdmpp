@@ -1,0 +1,14 @@
+class SpatialPureVDM is subclass of GLOBAL
+
+instance variables
+    c1 : Circle := new Circle(mk_Point(5,5), 3);
+    c2 : Circle := new Circle(mk_Point(9,9), 3);
+    relations : set of Relation := {new Intersection()};
+operations
+public Run: () ==> ()
+Run() == (
+    for all r in set relations
+    do IO`println(r.property(c1,c2));   
+);
+
+end SpatialPureVDM

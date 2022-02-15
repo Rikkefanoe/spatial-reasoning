@@ -1,0 +1,23 @@
+class Circle is subclass of GLOBAL, Region
+    instance variables
+        public center : Point;
+        public radius : nat;
+        public points : set of Point;
+    
+    operations
+        public Circle: Point * nat ==> Circle
+        Circle(c, r) ==
+        (
+            center := c;
+            radius := r;
+            /* TODO: Acts as square for now, change below*/
+            points := {mk_Point(x,y) | x in set {center.X-radius,...,center.X+radius},
+                                  y in set {center.Y-radius,...,center.Y+radius}} 
+        );
+        public Points: () ==> set of Point
+        Points() ==
+        (
+            return points
+        );
+
+end Circle
