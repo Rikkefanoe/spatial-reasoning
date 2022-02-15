@@ -9,21 +9,42 @@ point2D ::
 public 
 circle :: 
     center: point2D 
-    radius: nat;
+    radius: nat1;
 
 operations
 
+/* is c1 disconnected from c2 */
 public
 disconnected: circle * circle ==> bool
 disconnected(c1,c2) == 
     (
         if (c1 = c2) 
-        then return false;
-        
+        then return false
+        else        
         let dist = c1.radius + c2.radius in 
-        if( dist < (c1.center.x - c2.center.x + c1.center.x - c2.center.x) )
-        then return true
-        else return false;
+        return dist < (c1.center.x - c2.center.x + c1.center.x - c2.center.x);
+    );
+
+/* is c1 inside c2 */
+public 
+inside: circle*circle ==> bool
+inside(c1,c2) == 
+    (
+        let c1x1 = c1.center.x + c1.radius, 
+            c1x2 = c1.center.x - c1.radius,
+            c1y1 = c1.center.y + c1.radius, 
+            c1y2 = c1.center.y - c1.radius,
+            c2x1 = c2.center.x + c2.radius, 
+            c2x2 = c2.center.x - c2.radius,
+            c2y1 = c2.center.y + c2.radius, 
+            c2y2 = c2.center.y - c2.radius
+        in 
+            return c1x1 < c2x1 and
+                   c1x2 > c2x2 and 
+                   c1y1 < c2y1 and 
+                   c1y2 > c2y2; 
+
+
     );
 
 end spatial_demo
@@ -39,7 +60,10 @@ Run() ==
         dcl c2 : spatial_demo`circle := mk_circle(mk_point2D(-1,-1),1);
 
         dcl res : bool := spatial_demo`disconnected(c1,c2);
-        IO`println(res);
+        IO`println({"test 1:" , res});
+
+        res := spatial_demo`inside(c1, c2);
+        IO`println({"test 2:" , res});
     );
 
 end testSpatial
