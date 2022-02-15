@@ -1,0 +1,45 @@
+class spatial_demo
+
+types
+public 
+point2D :: 
+    x:real 
+    y:real;
+
+public 
+circle :: 
+    center: point2D 
+    radius: nat;
+
+operations
+
+public
+disconnected: circle * circle ==> bool
+disconnected(c1,c2) == 
+    (
+        if (c1 = c2) 
+        then return false;
+        
+        let dist = c1.radius + c2.radius in 
+        if( dist < (c1.center.x - c2.center.x + c1.center.x - c2.center.x) )
+        then return true
+        else return false;
+    );
+
+end spatial_demo
+
+class testSpatial is subclass of spatial_demo
+
+operations
+
+public Run:() ==> ()
+Run() ==    
+    (
+        dcl c1 : spatial_demo`circle := mk_circle(mk_point2D(1,1),1);
+        dcl c2 : spatial_demo`circle := mk_circle(mk_point2D(-1,-1),1);
+
+        dcl res : bool := spatial_demo`disconnected(c1,c2);
+        IO`println(res);
+    );
+
+end testSpatial

@@ -1,0 +1,29 @@
+class demoClass
+types
+public twodim = nat*nat;
+instance variables 
+startp : twodim := mk_(0,0);
+endp  : twodim := mk_(0,0);
+counter : nat := 0;
+
+operations
+public demoClass: twodim*twodim ==> demoClass
+demoClass(s,e) ==
+/*@Trace(s,e) */
+/*@Demo(s)*/
+/*@Spatial("using spatial annotation") */
+(
+  startp := s;
+  endp := e;
+);
+public count:()==>nat
+count()==/*@Printf("counting") */ (counter := counter+ 1; return counter);
+
+public setStart: twodim ==> ()
+setStart(s) == /*@Trace(s)*/startp:=s;
+
+public setEnd: twodim ==> ()
+setEnd(e) ==/*@Trace(e)*/ endp:=e;
+
+end demoClass
+

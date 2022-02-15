@@ -1,0 +1,9 @@
+##########################################################################################
+# The annotation class mapping definition for the VDMJ Interpreter. See ClassMapper.
+##########################################################################################
+
+# annotations
+package annotations.tc to annotations.in;
+map TCDemoAnnotation{name, args} to INDemoAnnotation(name, args);
+map TCSpatialAnnotation{name, args} to INSpatialAnnotation(name, args);
+

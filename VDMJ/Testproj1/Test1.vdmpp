@@ -1,0 +1,24 @@
+\begin{vdm_al}
+class Test1
+
+instance variables
+
+a1   : demoClass  := new demoClass(mk_(0,0),mk_(0,0));
+
+
+operations
+
+public Run: () ==> ()
+Run() == 
+(
+    a1.setStart(mk_(1,1));
+(    dcl c : nat;
+    c:= a1.count();
+    c:=a1.count();
+    c:=a1.count();
+    c:=a1.count();
+) );
+
+
+end Test1
+\end{vdm_al}
