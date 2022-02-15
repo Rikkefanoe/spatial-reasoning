@@ -56,13 +56,13 @@ operations
 public Run:() ==> ()
 Run() ==    
     (
-        dcl c1 : spatial_demo`circle := mk_circle(mk_point2D(1,1),1);
-        dcl c2 : spatial_demo`circle := mk_circle(mk_point2D(-1,-1),1);
+        dcl c1 : circle := mk_circle(mk_point2D(1,1),1);
+        dcl c2 : circle := mk_circle(mk_point2D(-1,-1),1);
 
-        dcl res : bool := spatial_demo`disconnected(c1,c2);
+        dcl res : bool := disconnected(c1,c2);
         IO`println({"test 1:" , res});
 
-        res := spatial_demo`inside(c1, c2);
+        res := inside(c1, c2);
         IO`println({"test 2:" , res});
     );
 
