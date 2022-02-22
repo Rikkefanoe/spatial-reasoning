@@ -1,0 +1,19 @@
+class spatial_demo1
+
+types
+/*@Geometry() */
+point2D :: 
+    x:rat 
+    y:rat;
+
+
+/*@Geometry() */
+circle :: 
+    center: point2D 
+    radius: nat1;
+
+notGeo:: 
+    x: int;
+
+
+end spatial_demo1

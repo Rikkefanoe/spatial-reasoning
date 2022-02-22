@@ -52,7 +52,6 @@ disconnected(l1,l2) ==
             sety: set of real := {l1.startingPoint.y,l2.startingPoint.y,l1.endingPoint.y,l2.endingPoint.y},
             minx: real:=0, maxx: real:=0, miny:real:=0, maxy:real:=0;
 
-            -- IO`println({x | x,y in set setx & x <> y and not x < y});
             for all x in set setx \ {x | x,y in set setx & x <> y and not x < y} do 
             minx := x;
             for all x in set setx \ {x | x,y in set setx & x <> y and x < y} do 
