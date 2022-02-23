@@ -15,5 +15,14 @@ circle ::
 notGeo:: 
     x: int;
 
+instance variables
+    c1 : circle;
+operations
+public spatial_demo1:()==>spatial_demo1
+spatial_demo1()==
+/*@Geometry("circle :: center, radius") */
+(
+    c1 := mk_circle(mk_point2D(2,2),2);
+)
 
 end spatial_demo1

@@ -31,7 +31,16 @@ public class INGeometryAnnotation extends INAnnotation
 
 	private void doGeometry(Context ctxt)
 	{
-
+		Object[] values = new Value[args.size() - 1];
+		
+		for (int p=1; p < args.size(); p++)
+		{
+			values[p-1] = args.get(p).eval(ctxt);
+		}
+		
+		INStringLiteralExpression fmt = (INStringLiteralExpression)args.get(0);
+		Console.out.printf(fmt.value.value, values);
 
 	}
+
 }

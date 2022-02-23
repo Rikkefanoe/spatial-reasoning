@@ -25,7 +25,11 @@
 package annotations.tc;
 
 import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Vector;
 
+import com.fujitsu.vdmj.ast.lex.LexStringToken;
 import com.fujitsu.vdmj.tc.annotations.TCAnnotation;
 import com.fujitsu.vdmj.tc.definitions.TCClassDefinition;
 import com.fujitsu.vdmj.tc.definitions.TCDefinition;
@@ -50,7 +54,8 @@ public class TCSpatialAnnotation extends TCAnnotation
 	@Override
 	public void tcBefore(TCDefinition def, Environment env, NameScope scope)
 	{
-		name.report(6009, "@Spatial only applies to statements and expressions");
+		checkArgs1(env,scope,def);
+		// name.report(6009, "@Spatial only applies to statements and expressions");
 	}
 
 	@Override
@@ -111,6 +116,34 @@ public class TCSpatialAnnotation extends TCAnnotation
 			{
 				name.report(6008, "@Spatial must start with a string argument");
 			}
+		}
+	}
+
+	private void checkArgs1(Environment env, NameScope scope, TCDefinition def)
+	{
+		if (!args.isEmpty())
+		{
+			name.report(6008, "@Spatial must start with a string argument");
+		}
+		else
+		{
+				String[] definition = def.toString().split(" ");
+				List<String> objParts = new ArrayList<>();
+				for(int i =7; i<definition.length-1; i++){ // don't care about 'end'
+							objParts.add(definition[i]);
+				}
+				StringBuilder strb = new StringBuilder(); 
+				strb.append(def.name.toString());
+				strb.append(" :: ");
+
+				for(String i : objParts){
+					strb.append(i);
+					strb.append(" ");
+				}
+				String stri=strb.toString();
+				// System.out.printf(stri); // format = circle :: center:point2D, radius:nat1
+				
+			
 		}
 	}
 }

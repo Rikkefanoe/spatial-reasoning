@@ -24,6 +24,7 @@
 
 package annotations.tc;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
@@ -40,6 +41,9 @@ import com.fujitsu.vdmj.tc.statements.TCStatement;
 import com.fujitsu.vdmj.typechecker.Environment;
 import com.fujitsu.vdmj.typechecker.NameScope;
 import com.fujitsu.vdmj.messages.Console;
+import com.fujitsu.vdmj.tc.types.TCType;
+import com.fujitsu.vdmj.values.Value;
+
 
 
 public class TCGeometryAnnotation extends TCAnnotation
@@ -56,30 +60,79 @@ public class TCGeometryAnnotation extends TCAnnotation
 	@Override
 	public void tcBefore(TCDefinition def, Environment env, NameScope scope)
 	{
-		checkArgs(env, scope);
-
+		checkArgs(env, scope,def);
+		// Console.out.println(def.toString()); // prints "static private circle = compose circle of center:point2D, radius:nat1 end"
+		// Console.out.println(def.name.toString()); // prints "circle"
+		// Console.out.println(def.nameScope.toString()); // prints "TYPENAME"
+		// Console.out.println(def.location.toString()); // prints "in 'spatial_demo1' (.\spatial_demo1.vdmpp) at line 5:1"
+		// Console.out.println("comments" + def.comments.toString()); // [/*@Geometry() */]
+		// Console.out.println("annotations" + def.annotations.toString()); //[@Geometry]
+		// Console.out.println("getDefinitions" + def.getDefinitions().toString()); //static private point2D = compose point2D of x:rat, y:rat end
+		// Console.out.println("getCallMap" + def.getCallMap().toString()); 
+		// Console.out.println("getFreeVariables" + def.getFreeVariables().toString()); 
+		// Console.out.println("getVariableNames" + def.getVariableNames().toString()); //point2D
+		// Console.out.println("getType" + def.getType().toString()); // point2D
 	}
 
-	// @Override
-	// public void doClose(){
-	// 	for (int p=0; p < geometryInstances.size(); p++)
-	// 	{
-	// 		Console.out.println(geometryInstances.get(p).toString());
-	// 		Console.out.println("p");
 
-	// 	}
-	// }
-
-	private void checkArgs(Environment env, NameScope scope)
+	private void checkArgs(Environment env, NameScope scope, TCDefinition def)
 	{
 		if (!args.isEmpty())
 		{
-			name.report(6008, "@Geometry must be empty");
+			if (args.get(0) instanceof TCStringLiteralExpression)
+			{
+				for (TCExpression arg: args)
+				{
+					arg.typeCheck(env, null, scope, null);	// Just checks scope
+				}
+				
+				TCStringLiteralExpression str = (TCStringLiteralExpression)args.get(0);
+				String format = str.value.value;
+				
+				try
+				{
+					// Try to format with string arguments to check they are all %s (up to 20)
+					Object[] args = new String[20];
+					Arrays.fill(args, "A string");
+					String.format(format, args);
+				}
+				catch (IllegalArgumentException e)
+				{
+					name.report(6008, "@Printf must use %[arg$][width]s conversions");
+				}
+			}
+			else
+			{
+				name.report(6008, "@Printf must start with a string argument");
+			}
 		}
 		else
 		{
 			// 		name.report(0,geometryInstances.get(0).toString());
 			// doClose();
+			Console.out.println(def.toString());
+
+			printGeo(def);			
 		}
+	}
+
+	private void printGeo(TCDefinition def)
+	{
+		String[] definition = def.toString().split(" ");
+		List<String> objParts = new ArrayList<>();
+		for(int i =7; i<definition.length-1; i++){ // don't care about 'end'
+					objParts.add(definition[i]);
+		}
+		StringBuilder strb = new StringBuilder(); 
+		strb.append(def.name.toString());
+		strb.append(" :: ");
+
+		for(String i : objParts){
+			strb.append(i);
+			strb.append(" ");
+		}
+		String stri=strb.toString();
+		Console.out.println(stri);
+
 	}
 }

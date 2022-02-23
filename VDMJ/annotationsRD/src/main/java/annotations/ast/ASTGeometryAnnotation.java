@@ -17,9 +17,9 @@ public class ASTGeometryAnnotation extends ASTAnnotation
 		super(name);
 	}
 
-	@Override
-	public void astBefore(DefinitionReader reader)
-	{
-		System.out.printf("astBefore ");
-	}
+	// @Override
+	// public void astBefore(DefinitionReader reader)
+	// {
+	// 	System.out.printf("astBefore ");
+	// }
 }
