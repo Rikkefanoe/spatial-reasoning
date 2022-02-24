@@ -24,11 +24,12 @@
 
 package annotations.tc;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
+import com.fujitsu.vdmj.ast.lex.LexStringToken;
 import com.fujitsu.vdmj.tc.annotations.TCAnnotation;
 import com.fujitsu.vdmj.tc.definitions.TCClassDefinition;
 import com.fujitsu.vdmj.tc.definitions.TCDefinition;
@@ -40,17 +41,12 @@ import com.fujitsu.vdmj.tc.modules.TCModule;
 import com.fujitsu.vdmj.tc.statements.TCStatement;
 import com.fujitsu.vdmj.typechecker.Environment;
 import com.fujitsu.vdmj.typechecker.NameScope;
-import com.fujitsu.vdmj.messages.Console;
-import com.fujitsu.vdmj.tc.types.TCType;
-import com.fujitsu.vdmj.values.Value;
 
-
-
-public class TCRelationAnnotation extends TCAnnotation
+public class TCVDMSpatialAnnotation extends TCAnnotation
 {
 	private static final long serialVersionUID = 1L;
-	
-	public TCRelationAnnotation (TCIdentifierToken name, TCExpressionList args)
+
+	public TCVDMSpatialAnnotation (TCIdentifierToken name, TCExpressionList args)
 	{
 		super(name, args);
 	}
@@ -58,69 +54,42 @@ public class TCRelationAnnotation extends TCAnnotation
 	@Override
 	public void tcBefore(TCDefinition def, Environment env, NameScope scope)
 	{
-		checkArgs(env, scope,def);
-
+		//checkArgs1(env,scope,def);
+		// name.report(6009, "@Spatial only applies to statements and expressions");
 	}
 
-
-	private void checkArgs(Environment env, NameScope scope, TCDefinition def)
+	@Override
+	public void tcBefore(TCModule module)
 	{
-		if (!args.isEmpty())
-		{
-			if (args.get(0) instanceof TCStringLiteralExpression)
-			{
-				for (TCExpression arg: args)
-				{
-					arg.typeCheck(env, null, scope, null);	// Just checks scope
-				}
-				
-				TCStringLiteralExpression str = (TCStringLiteralExpression)args.get(0);
-				String format = str.value.value;
-				
-				try
-				{
-					// Try to format with string arguments to check they are all %s (up to 20)
-					Object[] args = new String[20];
-					Arrays.fill(args, "A string");
-					String.format(format, args);
-				}
-				catch (IllegalArgumentException e)
-				{
-					name.report(6008, "@Printf must use %[arg$][width]s conversions");
-				}
-			}
-			else
-			{
-				name.report(6008, "@Printf must start with a string argument");
-			}
-		}
-		else
-		{
-			// 		name.report(0,geometryInstances.get(0).toString());
-			// doClose();
-			Console.out.println(def.toString());
-
-			printGeo(def);			
-		}
+		name.report(6009, "@Spatial only applies to statements and expressions");
 	}
 
-	private void printGeo(TCDefinition def)
+	@Override
+	public void tcBefore(TCClassDefinition clazz)
 	{
-		String[] definition = def.toString().split(" ");
-		List<String> objParts = new ArrayList<>();
-		for(int i =7; i<definition.length-1; i++){ // don't care about 'end'
-					objParts.add(definition[i]);
-		}
-		StringBuilder strb = new StringBuilder(); 
-		strb.append(def.name.toString());
-		strb.append(" :: ");
-
-		for(String i : objParts){
-			strb.append(i);
-			strb.append(" ");
-		}
-		String stri=strb.toString();
-		Console.out.println(stri);
-
+		name.report(6009, "@Spatial only applies to statements and expressions");
 	}
+
+	@Override
+	public void tcBefore(TCExpression exp, Environment env, NameScope scope)
+	{
+		//checkArgs(env, scope);
+	}
+
+	@Override
+	public void tcBefore(TCStatement stmt, Environment env, NameScope scope)
+	{
+		//checkArgs(env, scope);
+	}
+
+	@Override
+	public void tcAfter(TCClassDefinition m)
+	{
+		System.out.println("constructing");
+	}
+
+	// private void checkArgs(Environment env, NameScope scope)
+	// {
+
+	// }
 }

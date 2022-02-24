@@ -4,7 +4,4 @@
 
 # annotations
 package annotations.tc to annotations.in;
-map TCDemoAnnotation{name, args} to INDemoAnnotation(name, args);
-map TCSpatialAnnotation{name, args} to INSpatialAnnotation(name, args);
-map TCGeometryAnnotation{name, args} to INGeometryAnnotation(name, args);
 
