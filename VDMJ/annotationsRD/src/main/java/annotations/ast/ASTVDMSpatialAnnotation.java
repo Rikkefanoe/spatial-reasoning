@@ -1,5 +1,6 @@
 package annotations.ast;
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,12 +27,13 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 		super(name);
 		// System.out.println("ast vdmsp");
 
+
 	}
 
 	@Override
 	public void astAfter(ClassReader reader, ASTClassDefinition clazz)
 	{
-		// Nothing by default
+
 		// System.out.println("ast after");
 		// System.out.println("\n"+clazz.toString());
 
@@ -50,6 +52,7 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 				System.out.println("");
 			}
 		}
+
 
 	}
 	// public void astBefore(DefinitionReader reader)

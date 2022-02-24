@@ -1,0 +1,6 @@
+class Region is subclass of GLOBAL
+
+instance variables
+    public points: set of Point := {};
+
+end Region
