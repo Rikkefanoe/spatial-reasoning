@@ -1,0 +1,13 @@
+class A
+operations
+    public add: nat * nat ==> nat
+    add(a, b) == is subclass responsibility;
+end A
+
+class B is subclass of A
+operations
+    --@Override
+    public add: nat * nat ==> nat
+    add(a, b) ==  /*@Trace(a, b)*/ return /*@Printf("test")*/ a + /*@Trace(b)*/ b;
+    
+end B

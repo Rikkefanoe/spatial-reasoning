@@ -1,0 +1,18 @@
+{
+    "configurations": [
+        {
+            "name": "Launch VDM Debug from Test1`Run()",
+            "type": "vdm",
+            "request": "launch",
+            "noDebug": false,
+            "dynamicTypeChecks": true,
+            "invariantsChecks": true,
+            "preConditionChecks": true,
+            "postConditionChecks": true,
+            "annotationsChecks": true,
+            "measureChecks": true,
+            "defaultName": "Test1",
+            "command": "print new Test1().Run()"
+        }
+    ]
+}

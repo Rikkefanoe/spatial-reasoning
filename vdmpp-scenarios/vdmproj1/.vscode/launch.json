@@ -1,0 +1,17 @@
+{
+    "configurations": [
+        {
+            "name": "Launch VDM Debug from testSpatial`Run()",
+            "type": "vdm",
+            "request": "launch",
+            "noDebug": false,
+            "dynamicTypeChecks": true,
+            "invariantsChecks": true,
+            "preConditionChecks": true,
+            "postConditionChecks": true,
+            "measureChecks": true,
+            "defaultName": "testSpatial",
+            "command": "print new testSpatial().Run()"
+        }
+    ]
+}

@@ -1,0 +1,28 @@
+class spatial_demo2
+
+types
+/*@Geometry */
+point2D :: 
+    x:rat 
+    y:rat;
+
+
+/*@Geometry */
+circle :: 
+    centre: point2D 
+    radius: nat1;
+
+notGeo:: 
+    x: int;
+
+
+operations
+
+/*@relation */
+disconnected: circle*circle ==> bool
+disconnected(c1,c2) ==
+        return true; --(c1.centre.x - c2.centre.x)^2 + (c1.centre.y - c2.centre.y)^2 > (c1.radius + c2.radius)^2;
+
+    
+
+end spatial_demo2

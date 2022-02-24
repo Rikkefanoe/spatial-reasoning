@@ -1,0 +1,40 @@
+class spatial_demo1
+
+/*@VDMSpatial() */
+-- 
+
+types
+/*@Geometry() */
+public
+point2D :: 
+    x:rat 
+    y:rat;
+
+
+/*@Geometry(circle, center, r) */
+circle :: 
+    center: point2D 
+    radius: nat1;
+
+notGeo:: 
+    x: int;
+
+instance variables
+    c1 : circle;
+operations
+
+public
+coincident: point2D*point2D ==> bool
+coincident(p1,p2) == /*@Relation() */return (p1.x = p2.x and p1.y=p2.y);
+
+
+
+-- public spatial_demo1:()==>spatial_demo1
+-- spatial_demo1()==
+-- /*@Geometry("circle :: center, radius") */
+-- (
+--     c1 := mk_circle(mk_point2D(2,2),2);
+-- )
+
+
+end spatial_demo1

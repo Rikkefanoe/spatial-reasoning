@@ -1,0 +1,149 @@
+class spatial_demo
+
+types
+public 
+point2D :: 
+    x:rat 
+    y:rat;
+
+public 
+point3D :: 
+    x:rat 
+    y:rat
+    z:rat;
+
+public 
+circle :: 
+    center: point2D 
+    radius: nat1;
+
+
+public 
+line ::
+    startingPoint : point2D
+    endingPoint :  point2D;
+
+operations
+
+/* is c1 disconnected from c2 */
+public
+disconnected: circle * circle ==> bool
+disconnected(c1,c2) == 
+    (
+        if (c1 = c2) 
+        then return false
+        else        
+        let dist = c1.radius + c2.radius in 
+        return dist < (c1.center.x - c2.center.x + c1.center.x - c2.center.x);
+    );
+
+
+/* is c1 disconnected from c2 */
+public
+disconnected: line * line ==> bool
+disconnected(l1,l2) == 
+    (
+        dcl l1a: rat := ((l1.endingPoint.y - l1.startingPoint.y) /  (l1.endingPoint.x - l1.startingPoint.x)),
+            l1b: rat := (l1.startingPoint.y - (l1a*l1.startingPoint.x)),
+            l2a: rat := ((l2.endingPoint.y - l2.startingPoint.y) /  (l2.endingPoint.x - l2.startingPoint.x)),
+            l2b: rat := (l2.startingPoint.y - (l2a*l2.startingPoint.x)),
+
+            setx: set of real :={l1.startingPoint.x,l2.startingPoint.x,l1.endingPoint.x,l2.endingPoint.x}, 
+            sety: set of real := {l1.startingPoint.y,l2.startingPoint.y,l1.endingPoint.y,l2.endingPoint.y},
+            minx: real:=0, maxx: real:=0, miny:real:=0, maxy:real:=0;
+
+            for all x in set setx \ {x | x,y in set setx & x <> y and not x < y} do 
+            minx := x;
+            for all x in set setx \ {x | x,y in set setx & x <> y and x < y} do 
+            maxx := x;
+            for all y in set setx \ {x | x,y in set sety & x <> y and not x < y} do 
+            miny := y;
+            for all y in set setx \ {x | x,y in set sety & x <> y and x < y} do 
+            maxy := y;            
+
+            let l1points = {mk_point2D(x,y) | x in set {minx,...,maxx}, y in set {miny,...,maxy} & y = l1a*x+l1b},
+                l2points = {mk_point2D(x,y) | x in set {minx,...,maxx}, y in set {miny,...,maxy} & y = l2a*x+l2b}
+            in
+                return not exists p in set l1points & p in set l2points;
+    );
+
+
+/* is c1 inside c2 */
+public 
+inside: circle*circle ==> bool
+inside(c1,c2) == 
+    (
+        let c1x1 = c1.center.x + c1.radius, 
+            c1x2 = c1.center.x - c1.radius,
+            c1y1 = c1.center.y + c1.radius, 
+            c1y2 = c1.center.y - c1.radius,
+            c2x1 = c2.center.x + c2.radius, 
+            c2x2 = c2.center.x - c2.radius,
+            c2y1 = c2.center.y + c2.radius, 
+            c2y2 = c2.center.y - c2.radius
+        in 
+            return c1x1 < c2x1 and
+                   c1x2 > c2x2 and 
+                   c1y1 < c2y1 and 
+                   c1y2 > c2y2; 
+
+
+    );
+    
+public boundaries: point2D * point2D * point2D * point2D ==> seq of real
+boundaries(p1,p2,p3,p4) ==
+(
+    dcl setx: set of real :={p1.x,p2.x,p3.x,p4.x}, 
+        sety: set of real := {p1.y,p2.y,p3.y,p4.y},
+        minx: real, maxx: real, miny:real, maxy:real;
+
+        for all x in set {x | x in set setx & forall x1,y1 in set setx & x1<>y1 => x1 < y1 } do minx := x;
+        for all x in set {x | x in set setx & forall x1,y1 in set setx & x1<>y1 => x1 < y1 } do maxx := x;
+        for all x in set  {x | x in set sety & forall x1,y1 in set sety & x1<>y1 => x1 < y1 } do miny := x;
+        for all x in set  {x | x in set sety & forall x1,y1 in set sety & x1<>y1 => x1 < y1 } do maxy := x;
+        
+        return [minx,maxx,miny,maxy];
+
+);
+
+
+
+end spatial_demo
+
+class testSpatial is subclass of spatial_demo
+
+operations
+
+public Run:() ==> ()
+Run() ==    
+    (
+        /*test circle */
+        (
+        dcl c1 : circle := mk_circle(mk_point2D(1,1),1);
+        dcl c2 : circle := mk_circle(mk_point2D(-1,-1),1);
+
+        dcl res : bool := disconnected(c1,c2);
+        IO`println({"test 1:" , res});
+
+        res := inside(c1, c2);
+        IO`println({"test 2:" , res});
+        );
+
+        /*test line */
+        (
+            dcl l1: line := mk_line(mk_point2D(1,1),mk_point2D(5,5));
+            dcl l2: line := mk_line(mk_point2D(1,5),mk_point2D(5,1));
+
+            dcl l3: line := mk_line(mk_point2D(1,1),mk_point2D(5,2));
+            dcl l4: line := mk_line(mk_point2D(2,1),mk_point2D(5,3));
+            
+            dcl res : bool := disconnected(l1,l2);
+            IO`println({"line test1: ", res});
+
+            res := disconnected(l3,l4);
+            IO`println({"line test2: ", res});
+
+        );
+    );
+
+end testSpatial
