@@ -24,12 +24,11 @@
 
 package annotations.tc;
 
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
-import com.fujitsu.vdmj.ast.lex.LexStringToken;
 import com.fujitsu.vdmj.tc.annotations.TCAnnotation;
 import com.fujitsu.vdmj.tc.definitions.TCClassDefinition;
 import com.fujitsu.vdmj.tc.definitions.TCDefinition;
@@ -41,55 +40,21 @@ import com.fujitsu.vdmj.tc.modules.TCModule;
 import com.fujitsu.vdmj.tc.statements.TCStatement;
 import com.fujitsu.vdmj.typechecker.Environment;
 import com.fujitsu.vdmj.typechecker.NameScope;
+import com.fujitsu.vdmj.messages.Console;
+import com.fujitsu.vdmj.tc.types.TCType;
+import com.fujitsu.vdmj.values.Value;
+
+
 
 public class TCVDMSpatialAnnotation extends TCAnnotation
 {
 	private static final long serialVersionUID = 1L;
-
+	
 	public TCVDMSpatialAnnotation (TCIdentifierToken name, TCExpressionList args)
 	{
 		super(name, args);
+
 	}
 
-	@Override
-	public void tcBefore(TCDefinition def, Environment env, NameScope scope)
-	{
-		//checkArgs1(env,scope,def);
-		// name.report(6009, "@Spatial only applies to statements and expressions");
-	}
 
-	@Override
-	public void tcBefore(TCModule module)
-	{
-		name.report(6009, "@Spatial only applies to statements and expressions");
-	}
-
-	@Override
-	public void tcBefore(TCClassDefinition clazz)
-	{
-		name.report(6009, "@Spatial only applies to statements and expressions");
-	}
-
-	@Override
-	public void tcBefore(TCExpression exp, Environment env, NameScope scope)
-	{
-		//checkArgs(env, scope);
-	}
-
-	@Override
-	public void tcBefore(TCStatement stmt, Environment env, NameScope scope)
-	{
-		//checkArgs(env, scope);
-	}
-
-	@Override
-	public void tcAfter(TCClassDefinition m)
-	{
-		System.out.println("constructing");
-	}
-
-	// private void checkArgs(Environment env, NameScope scope)
-	// {
-
-	// }
 }
