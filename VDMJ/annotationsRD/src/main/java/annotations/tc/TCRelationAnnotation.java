@@ -46,13 +46,11 @@ import com.fujitsu.vdmj.values.Value;
 
 
 
-public class TCGeometryAnnotation extends TCAnnotation
+public class TCRelationAnnotation extends TCAnnotation
 {
 	private static final long serialVersionUID = 1L;
-
-	public static final List<TCDefinition> geometryInstances = new Vector<TCDefinition>();
 	
-	public TCGeometryAnnotation (TCIdentifierToken name, TCExpressionList args)
+	public TCRelationAnnotation (TCIdentifierToken name, TCExpressionList args)
 	{
 		super(name, args);
 	}
@@ -61,17 +59,6 @@ public class TCGeometryAnnotation extends TCAnnotation
 	public void tcBefore(TCDefinition def, Environment env, NameScope scope)
 	{
 		checkArgs(env, scope,def);
-		Console.out.println(def.toString()); // prints "static private circle = compose circle of center:point2D, radius:nat1 end"
-		Console.out.println(def.name.toString()); // prints "circle"
-		Console.out.println(def.nameScope.toString()); // prints "TYPENAME"
-		Console.out.println(def.location.toString()); // prints "in 'spatial_demo1' (.\spatial_demo1.vdmpp) at line 5:1"
-		Console.out.println("comments" + def.comments.toString()); // [/*@Geometry() */]
-		Console.out.println("annotations" + def.annotations.toString()); //[@Geometry]
-		Console.out.println("getDefinitions" + def.getDefinitions().toString()); //static private point2D = compose point2D of x:rat, y:rat end
-		Console.out.println("getCallMap" + def.getCallMap().toString()); 
-		Console.out.println("getFreeVariables" + def.getFreeVariables().toString()); 
-		Console.out.println("getVariableNames" + def.getVariableNames().toString()); //point2D
-		Console.out.println("getType" + def.getType().toString()); // point2D
 
 	}
 
@@ -119,10 +106,6 @@ public class TCGeometryAnnotation extends TCAnnotation
 
 	private void printGeo(TCDefinition def)
 	{
-
-
-
-
 		String[] definition = def.toString().split(" ");
 		List<String> objParts = new ArrayList<>();
 		for(int i =7; i<definition.length-1; i++){ // don't care about 'end'
