@@ -4,5 +4,8 @@
 
 # annotations
 package annotations.ast to annotations.tc;
+map ASTGeometryAnnotation{name, args} to TCGeometryAnnotation(name, args);
+map ASTVDMSpatialAnnotation{name, args} to TCVDMSpatialAnnotation(name, args);
+
 
 
