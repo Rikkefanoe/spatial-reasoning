@@ -13,6 +13,9 @@ circle ::
     center: point2D
     radius: nat
     
+instance variables
+    p1 : point2D := mk_point2D(2,2);
+    c1 : circle := mk_circle(mk_point2D(2,2),1);
 
 operations
 f:point2D*point2D==>bool
