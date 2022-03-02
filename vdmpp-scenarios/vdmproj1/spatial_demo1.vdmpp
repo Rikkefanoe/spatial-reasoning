@@ -12,9 +12,15 @@ public
 circle ::
     center: point2D
     radius: nat
+    
+instance variables
+    p1 : point2D := mk_point2D(2,2);
+    c1 : circle := mk_circle(mk_point2D(2,2),1);
 
 operations
 f:point2D*point2D==>bool
 f(p1,p2) == return (p1.x = p2.x and p1.y = p2.y);
 
 end spatial_demo1
+
+
