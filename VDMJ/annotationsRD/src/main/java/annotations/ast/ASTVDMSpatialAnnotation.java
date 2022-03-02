@@ -3,15 +3,13 @@ package annotations.ast;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
 import com.fujitsu.vdmj.ast.annotations.ASTAnnotation;
 import com.fujitsu.vdmj.ast.lex.LexIdentifierToken;
-
-
 import com.fujitsu.vdmj.ast.definitions.ASTDefinition;
-// import com.fujitsu.vdmj.syntax.DefinitionReader;
 import com.fujitsu.vdmj.syntax.ClassReader;
 import com.fujitsu.vdmj.ast.definitions.ASTClassDefinition;
 
@@ -19,7 +17,6 @@ import com.fujitsu.vdmj.ast.definitions.ASTClassDefinition;
 
 public class ASTVDMSpatialAnnotation extends ASTAnnotation
 {
-	private testclass t = new testclass();
 	private static final long serialVersionUID = 1L;
 
 	public ASTVDMSpatialAnnotation(LexIdentifierToken name)
@@ -31,90 +28,93 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 	@Override
 	public void astAfter(ClassReader reader, ASTClassDefinition clazz)
 	{
-		// Nothing by default
-		// System.out.println("\n"+clazz.toString());
-		// for(int i=0; i<clazz.definitions.size(); i++){
-		// 	System.out.println(clazz.definitions.get(i).kind().toString());
-		// 	}
+		// get all elements in class
+		// available in clazz.definitions
 
 
+		// get all geometry types
+		List<ASTDefinition> geometryTypes = new Vector<ASTDefinition>();
+		// get all geometry relations
+		List<ASTDefinition> geometryRelations = new Vector<ASTDefinition>();
+		// get all geometry instances
+		List<ASTDefinition> geometryInstances = new Vector<ASTDefinition>();
 
-		/******************* HARD CODED EXAMPLE ********************/
-		// VDMGeometry p1 = new VDMGeometry();
-
-		// p1.setName("p1"); 
-		// p1.setType("point2d");
-		// RealValue p1x = new RealValue();
-		// p1x.v = 0;
-		// RealValue p1y = new RealValue();
-		// p1y.v = 0;
-
-		// p1.addAttribute("x", p1x);
-
-		// p1.addAttribute("y", p1y);
-
-		// System.out.println(p1.toString());
-
-
-		/******************* READ FROM VDM FILE SIMPLE ********************/
-		
-		// read in file VDM
-		// tokenize file input
-		// use input to test
-
-
-		List<String> geometries = new Vector<String>();
-		for(int i=0; i<clazz.definitions.size(); i++){
-			if(clazz.definitions.get(i).kind().toString() == "instance variable"){
-				// G1.addAttribute(clazz.definitions.get(i).toString(),v1);
-				geometries.add(clazz.definitions.get(i).toString());
+		for(int i =0; i<clazz.definitions.size(); i++){
+			if(clazz.definitions.get(i).kind() == "type"){
+				geometryTypes.add(clazz.definitions.get(i));
+			}
+			if(clazz.definitions.get(i).kind() == "explicit operation"){
+				geometryRelations.add(clazz.definitions.get(i));
+			}
+			if(clazz.definitions.get(i).kind() == "instance variable"){
+				geometryInstances.add(clazz.definitions.get(i));
 			}
 		}
+		// System.out.println("geometryTypes");
+		// System.out.println(geometryTypes);
+		// System.out.println("geometryRelations");
+		// System.out.println(geometryRelations);
+		// System.out.println("geometryInstances");
+		// System.out.println(geometryInstances);
 
-//p1:(unresolved point2D) := mk_point2D(2, 2) - 0.0
-		for(int i=0; i<geometries.size(); i++){
-			VDMGeometry G1 = new VDMGeometry();
+		List<String> arrangedTypes = arrangeTypes(geometryTypes);
+		System.out.println(arrangedTypes);
 
-			String [] st = geometries.get(i).split(":"); // name, type, =  value
-			String [] st1 = st[2].split("="); // name, type, =, value
-
-			G1.setName(st[0].trim()); 
-			G1.setType(st[1].trim());
-			RealValue v1 = new RealValue();
-			v1.s = st1[1].trim();
-			
-			// System.out.println(G1.getName() + G1.getType() + v1.s);
-
-			G1.addAttribute("value", v1);	
-
-			System.out.println(G1.toString());
+		int nInstances = geometryInstances.size();
+		VDMGeometry[] vdmGeometries = new VDMGeometry[nInstances];
+		
+		for(int i = 0; i<nInstances; i++){
+		// p1:(unresolved point2D) := mk_point2D(2, 2)
+		// c1:(unresolved circle) := mk_circle(mk_point2D(2, 2), 1)
+			String [] st = geometryInstances.get(i).toString().trim().split(":"); 
+			int nAttr = st.length-2; 
+			vdmGeometries[i] = new VDMGeometry();
+			vdmGeometries[i].setName(st[0]);
+			vdmGeometries[i].setType(st[1]);
+			// System.out.println(nInstances + " " + nAttr); 
+			RealValue[] val = new RealValue[nAttr]; // so far only 1 as string
+			val[0]= new RealValue();
+			val[0].s = st[2].substring(st[2].lastIndexOf("=") + 1);
+			vdmGeometries[i].addAttribute("value", val[0]);
 
 		}
 
+		for(int i = 0; i<nInstances; i++){
+			System.out.println(vdmGeometries[i].toString());
+			}
 
-		// name , type, attr1, attr2 
+		// get all geometry instances
+			// sort instance into
+				// name
+				// type
+				// value
+			//type check instances
 
-
-
-
-
-
-		// for(int i=0; i<clazz.definitions.size(); i++){
-		// 	if(clazz.definitions.get(i).kind().toString() == "type"){
-		// 		System.out.println("");
-		// 		System.out.println("Geometry : ");
-		// 		System.out.println(clazz.definitions.get(i).toString());
-		// 		System.out.println("");
-
-		// 	}
-		// 	if(clazz.definitions.get(i).kind().toString() == "explicit operation"){
-		// 		System.out.println("");
-		// 		System.out.println("Relation : ");
-		// 		System.out.println(clazz.definitions.get(i).toString());
-		// 		System.out.println("");
-		// 	}
-		// }
 
 	}
-	
+	private List<String> arrangeTypes(List l)
+	{
+		List<String> arrangedTypes = new ArrayList<>();
+
+		for(int i=0; i<l.size(); i++){
+		// static public point2D = compose point2D of x:rat, y:rat end
+		//				circle = compose circle of center: (unresolved point2D), radius:nat
+		String [] s1 = l.get(i).toString().substring(14,l.get(i).toString().length()-4).replace(",","").split("\\s+(?![^\\()]*\\))"); //https://stackoverflow.com/questions/12884573/split-string-by-all-spaces-except-those-in-brackets
+
+		// remove 1,2,3,4 from array
+		StringBuilder sb = new StringBuilder(s1[0]);
+		for(int n =s1.length-1; n>4; n--){
+				sb.append(" ");
+				sb.append(s1[n]);
+			}
+
+			arrangedTypes.add(sb.toString());
+		}
+			// System.out.println(arrangedTypes);
+
+		return arrangedTypes;
+
+	}
+
+
 }
