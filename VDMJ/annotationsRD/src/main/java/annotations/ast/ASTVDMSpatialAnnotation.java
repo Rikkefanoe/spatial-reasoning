@@ -30,6 +30,23 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 	{
 		// get all elements in class
 		// available in clazz.definitions
+		
+		boolean status = true;
+		status = (clazz.name.name.equals("VDMGeometry"));
+		if(!status){
+			System.out.println("VDMGeometry class not defined! Found: " + clazz.name.name);
+		}else{
+			for(int i = 0; i<clazz.definitions.size(); i++){
+				String defName = clazz.definitions.get(i).name.name;
+				if(!(defName.equals("Point2D") || defName.equals("Circle"))){
+					System.out.println("Unsupported type: " + defName);
+					status = false;
+				}
+			}
+			if(!status){
+				System.out.println("Supported types are: Point2D, Circle");
+			}
+		}
 
 
 		// get all geometry types
