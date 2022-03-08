@@ -7,6 +7,12 @@ import java.util.ListIterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+
 import com.fujitsu.vdmj.ast.annotations.ASTAnnotation;
 import com.fujitsu.vdmj.ast.lex.LexIdentifierToken;
 import com.fujitsu.vdmj.ast.definitions.ASTDefinition;
@@ -28,8 +34,42 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 	@Override
 	public void astAfter(ClassReader reader, ASTClassDefinition clazz)
 	{
+		// read file .sp
+		String filename = "scenario1.sp";
+		List<String> scenarioList = new ArrayList<>();
+
+		try {
+            scenarioList = readByJavaClassic(filename);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+		// for(int i =0; i < scenarioList.size(); i++){
+		System.out.println(scenarioList);
+		// }
+
+
+
 		// get all elements in class
 		// available in clazz.definitions
+
+		boolean status = true;
+		status = (clazz.name.name.equals("VDMGeometry"));
+		if(!status){
+			System.out.println("VDMGeometry class not defined! Found: " + clazz.name.name);
+		}else{
+			for(int i = 0; i<clazz.definitions.size(); i++){
+				String defName = clazz.definitions.get(i).name.name;
+				if(!(defName.equals("Point2D") || defName.equals("Circle"))){
+					System.out.println("Unsupported type: " + defName);
+					status = false;
+				}
+			}
+			if(!status){
+				System.out.println("Supported types are: Point2D, Circle");
+			}
+		}
 
 
 		// get all geometry types
@@ -115,6 +155,33 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 		return arrangedTypes;
 
 	}
+	// https://mkyong.com/java/java-how-to-read-a-file-into-a-list/
+	private static List readByJavaClassic(String fileName) throws IOException {
+
+        List<String> result = new ArrayList<>();
+        BufferedReader br = null;
+
+        try {
+
+            br = new BufferedReader(new FileReader(fileName));
+
+            String line;
+            while ((line = br.readLine()) != null) {
+				if(!(line.equals(""))){
+                result.add(line);
+				}
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                br.close();
+            }
+        }
+
+        return result;
+    }
 
 
 }
