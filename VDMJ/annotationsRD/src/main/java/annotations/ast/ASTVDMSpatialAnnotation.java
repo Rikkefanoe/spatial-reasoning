@@ -52,45 +52,8 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 
 		System.out.println(scenarioList);
 
-
-
 		// get all elements in class
 		// available in clazz.definitions
-		
-		boolean status = true;
-		status = (clazz.name.name.equals("VDMGeometry"));
-		if(!status){
-			System.out.println("VDMGeometry class not defined! Found: " + clazz.name.name);
-		}else{
-			for(int i = 0; i<clazz.definitions.size(); i++){
-				String defName = clazz.definitions.get(i).name.name;
-				if(!(defName.equals("Point2D") || defName.equals("Circle"))){
-					System.out.println("Unsupported type: " + defName);
-					status = false;
-				}
-			}
-			if(!status){
-				System.out.println("Supported types are: Point2D, Circle");
-			}
-		}
-
-		boolean status = true;
-		status = (clazz.name.name.equals("VDMGeometry"));
-		if(!status){
-			System.out.println("VDMGeometry class not defined! Found: " + clazz.name.name);
-		}else{
-			for(int i = 0; i<clazz.definitions.size(); i++){
-				String defName = clazz.definitions.get(i).name.name;
-				if(!(defName.equals("Point2D") || defName.equals("Circle"))){
-					System.out.println("Unsupported type: " + defName);
-					status = false;
-				}
-			}
-			if(!status){
-				System.out.println("Supported types are: Point2D, Circle");
-			}
-		}
-
 
 		// get all geometry types
 		List<ASTDefinition> geometryTypes = new Vector<ASTDefinition>();
@@ -110,6 +73,10 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 				geometryInstances.add(clazz.definitions.get(i));
 			}
 		}
+
+		int nInstances = scenarioList.size();
+		VDMGeometry[] vdmGeometries = new VDMGeometry[nInstances];
+
 		// System.out.println("geometryTypes");
 		// System.out.println(geometryTypes);
 		// System.out.println("geometryRelations");
@@ -120,28 +87,47 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 		List<String> arrangedTypes = arrangeTypes(geometryTypes);
 		System.out.println(arrangedTypes);
 
-		int nInstances = geometryInstances.size();
-		VDMGeometry[] vdmGeometries = new VDMGeometry[nInstances];
-		
-		for(int i = 0; i<nInstances; i++){
-		// p1:(unresolved point2D) := mk_point2D(2, 2)
-		// c1:(unresolved circle) := mk_circle(mk_point2D(2, 2), 1)
-			String [] st = geometryInstances.get(i).toString().trim().split(":"); 
-			int nAttr = st.length-2; 
-			vdmGeometries[i] = new VDMGeometry();
-			vdmGeometries[i].setName(st[0]);
-			vdmGeometries[i].setType(st[1]);
-			// System.out.println(nInstances + " " + nAttr); 
-			RealValue[] val = new RealValue[nAttr]; // so far only 1 as string
-			val[0]= new RealValue();
-			val[0].s = st[2].substring(st[2].lastIndexOf("=") + 1);
-			vdmGeometries[i].addAttribute("value", val[0]);
-
-		}
-
-		for(int i = 0; i<nInstances; i++){
-			System.out.println(vdmGeometries[i].toString());
+		for(int i = 0; i<scenarioList.size(); i++){
+			boolean status = false;
+			for(int j = 0; j<geometryTypes.size(); j++){
+				if(checkType(scenarioList.get(i), arrangedTypes.get(j)))
+				{
+					status = true;
+				}
+				if(status){
+					String[] instanceProps = scenarioList.get(i).split("\\s+(?![^\\()]*\\))");
+					vdmGeometries[i] = new VDMGeometry();
+					vdmGeometries[i].setName(instanceProps[0]);
+					vdmGeometries[i].setType(instanceProps[1]);
+				}
 			}
+			if(!status){
+				System.out.println("Type check failed.");
+			}
+		}
+		
+		// for(int i = 0; i<nInstances; i++){
+		// // p1:(unresolved point2D) := mk_point2D(2, 2)
+		// // c1:(unresolved circle) := mk_circle(mk_point2D(2, 2), 1)
+		// 	String [] st = geometryInstances.get(i).toString().trim().split(":"); 
+		// 	int nAttr = st.length-2; 
+		// 	vdmGeometries[i] = new VDMGeometry();
+		// 	vdmGeometries[i].setName(st[0]);
+		// 	vdmGeometries[i].setType(st[1]);
+		// 	// System.out.println(nInstances + " " + nAttr); 
+		// 	RealValue[] val = new RealValue[nAttr]; // so far only 1 as string
+		// 	val[0]= new RealValue();
+		// 	val[0].s = st[2].substring(st[2].lastIndexOf("=") + 1);
+		// 	vdmGeometries[i].addAttribute("value", val[0]);
+
+		// }
+
+		System.out.println("--- VDMGeometry instances ---");
+		for(int i = 0; i<scenarioList.size(); i++){
+			if(vdmGeometries[i] != null){
+				System.out.println(vdmGeometries[i].toString());
+			}
+		}
 
 		// get all geometry instances
 			// sort instance into
@@ -202,6 +188,44 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 
         return result;
     }
+
+	private boolean checkType(String instance, String type)
+	{
+		boolean res = false;
+		String[] instanceProps = instance.split("\\s+(?![^\\()]*\\))");
+		String[] typeProps = type.split("\\s+(?![^\\()]*\\))");
+		String instanceName = instanceProps[0];
+		String instanceType = instanceProps[1];
+		String typeName = typeProps[0];
+		if(instanceType.equals(typeName)){
+			res = true;
+		}
+		if(res){
+			// Check number of arguments
+			int nArgsProvided = instanceProps.length-2;
+			int nArgsRequired = typeProps.length-1;
+			if(nArgsProvided != nArgsRequired){
+				System.out.println("Instance " + instanceName + " has " + nArgsProvided + 
+								   " arguments. Expected " + nArgsRequired);
+				res = false;
+			} else {
+				// Check argument types
+				for(int i=0; i<nArgsRequired; i++){
+					String expectedType = typeProps[i+1].split(":")[1];
+					String providedArg = instanceProps[i+2];
+					if(expectedType.equals("rat")){
+						try {
+							double rat = Double.parseDouble(providedArg);
+						} catch (NumberFormatException nfe) {
+							System.out.println("Provided argument: "+ providedArg +" is not a rational number");
+							res = false;
+						}
+					}
+				}
+			}
+		}
+		return res;
+	}
 
 
 }
