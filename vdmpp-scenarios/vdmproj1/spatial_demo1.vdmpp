@@ -1,7 +1,7 @@
 
-/*@VDMSpatial() */
-class spatial_demo1
-
+/*@VDMSpatial(scenario1.sp) */
+-- class spatial_demo1
+class VDMGeometry
 types
 public
 point2D :: 
@@ -21,6 +21,6 @@ operations
 f:point2D*point2D==>bool
 f(p1,p2) == return (p1.x = p2.x and p1.y = p2.y);
 
-end spatial_demo1
-
+-- end spatial_demo1
+end VDMGeometry
 
