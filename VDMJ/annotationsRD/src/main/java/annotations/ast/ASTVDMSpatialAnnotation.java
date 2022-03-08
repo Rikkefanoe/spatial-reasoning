@@ -18,6 +18,7 @@ import com.fujitsu.vdmj.ast.lex.LexIdentifierToken;
 import com.fujitsu.vdmj.ast.definitions.ASTDefinition;
 import com.fujitsu.vdmj.syntax.ClassReader;
 import com.fujitsu.vdmj.ast.definitions.ASTClassDefinition;
+import com.fujitsu.vdmj.ast.expressions.ASTExpression;
 
 
 
@@ -34,20 +35,22 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 	@Override
 	public void astAfter(ClassReader reader, ASTClassDefinition clazz)
 	{
+		System.out.println(args);
+
+		
 		// read file .sp
-		String filename = "scenario1.sp";
+		// String filename = "scenario1.sp";
+		String f = args.toString();
+		String filename = f.replaceAll("[()]", "");;
 		List<String> scenarioList = new ArrayList<>();
 
 		try {
-            scenarioList = readByJavaClassic(filename);
+            scenarioList = readfile(filename);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-
-		// for(int i =0; i < scenarioList.size(); i++){
 		System.out.println(scenarioList);
-		// }
 
 
 
@@ -156,7 +159,7 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 
 	}
 	// https://mkyong.com/java/java-how-to-read-a-file-into-a-list/
-	private static List readByJavaClassic(String fileName) throws IOException {
+	private static List readfile(String fileName) throws IOException {
 
         List<String> result = new ArrayList<>();
         BufferedReader br = null;
