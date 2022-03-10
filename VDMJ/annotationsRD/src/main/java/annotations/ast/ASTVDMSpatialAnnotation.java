@@ -77,50 +77,25 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 		int nInstances = scenarioList.size();
 		VDMGeometry[] vdmGeometries = new VDMGeometry[nInstances];
 
-		// System.out.println("geometryTypes");
-		// System.out.println(geometryTypes);
-		// System.out.println("geometryRelations");
-		// System.out.println(geometryRelations);
-		// System.out.println("geometryInstances");
-		// System.out.println(geometryInstances);
-
 		List<String> arrangedTypes = arrangeTypes(geometryTypes);
 		System.out.println(arrangedTypes);
 
+		// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		for(int i = 0; i<scenarioList.size(); i++){
-			boolean status = false;
-			for(int j = 0; j<geometryTypes.size(); j++){
-				if(checkType(scenarioList.get(i), arrangedTypes.get(j)))
-				{
-					status = true;
-				}
-				if(status){
-					String[] instanceProps = scenarioList.get(i).split("\\s+(?![^\\()]*\\))");
-					vdmGeometries[i] = new VDMGeometry();
-					vdmGeometries[i].setName(instanceProps[0]);
-					vdmGeometries[i].setType(instanceProps[1]);
-				}
+			boolean status = true;
+			if(!checkType(scenarioList.get(i), arrangedTypes, vdmGeometries)){
+				status = false;
+			}
+			if(status){
+				String[] instanceProps = scenarioList.get(i).split("\\s+(?![^\\()]*\\))");
+				vdmGeometries[i] = new VDMGeometry();
+				vdmGeometries[i].setName(instanceProps[0]);
+				vdmGeometries[i].setType(instanceProps[1]);
 			}
 			if(!status){
 				System.out.println("Type check failed.");
 			}
 		}
-		
-		// for(int i = 0; i<nInstances; i++){
-		// // p1:(unresolved point2D) := mk_point2D(2, 2)
-		// // c1:(unresolved circle) := mk_circle(mk_point2D(2, 2), 1)
-		// 	String [] st = geometryInstances.get(i).toString().trim().split(":"); 
-		// 	int nAttr = st.length-2; 
-		// 	vdmGeometries[i] = new VDMGeometry();
-		// 	vdmGeometries[i].setName(st[0]);
-		// 	vdmGeometries[i].setType(st[1]);
-		// 	// System.out.println(nInstances + " " + nAttr); 
-		// 	RealValue[] val = new RealValue[nAttr]; // so far only 1 as string
-		// 	val[0]= new RealValue();
-		// 	val[0].s = st[2].substring(st[2].lastIndexOf("=") + 1);
-		// 	vdmGeometries[i].addAttribute("value", val[0]);
-
-		// }
 
 		System.out.println("--- VDMGeometry instances ---");
 		for(int i = 0; i<scenarioList.size(); i++){
@@ -128,14 +103,6 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 				System.out.println(vdmGeometries[i].toString());
 			}
 		}
-
-		// get all geometry instances
-			// sort instance into
-				// name
-				// type
-				// value
-			//type check instances
-
 
 	}
 	private List<String> arrangeTypes(List l)
@@ -189,36 +156,48 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
         return result;
     }
 
-	private boolean checkType(String instance, String type)
+	private boolean checkType(String instance, List<String> validTypes, VDMGeometry[] vdmGeometries)
 	{
+		System.out.println("Instance: "+instance+" validTypes: "+validTypes);
 		boolean res = false;
 		String[] instanceProps = instance.split("\\s+(?![^\\()]*\\))");
-		String[] typeProps = type.split("\\s+(?![^\\()]*\\))");
 		String instanceName = instanceProps[0];
 		String instanceType = instanceProps[1];
-		String typeName = typeProps[0];
-		if(instanceType.equals(typeName)){
-			res = true;
-		}
-		if(res){
-			// Check number of arguments
-			int nArgsProvided = instanceProps.length-2;
-			int nArgsRequired = typeProps.length-1;
-			if(nArgsProvided != nArgsRequired){
-				System.out.println("Instance " + instanceName + " has " + nArgsProvided + 
-								   " arguments. Expected " + nArgsRequired);
-				res = false;
-			} else {
+		for(int i = 0; i<validTypes.size(); i++){
+			String[] typeProps = validTypes.get(i).split("\\s+(?![^\\()]*\\))");
+			String typeName = typeProps[0];
+			if(instanceType.equals(typeName)){
+				res = true;
+			}
+			if(res){
+				// Check number of arguments
+				int nArgsProvided = instanceProps.length-2;
+				int nArgsRequired = typeProps.length-1;
+				if(nArgsProvided != nArgsRequired){
+					System.out.println("Instance " + instanceName + " has " + nArgsProvided + 
+									   " arguments. Expected " + nArgsRequired);
+					res = false;
+				}
+			}
+			if(res){
 				// Check argument types
-				for(int i=0; i<nArgsRequired; i++){
-					String expectedType = typeProps[i+1].split(":")[1];
-					String providedArg = instanceProps[i+2];
+				for(int j=0; j<(typeProps.length-1); j++){
+					String expectedType = typeProps[j+1].split(":")[1];
+					String providedArg = instanceProps[j+2];
 					if(expectedType.equals("rat")){
 						try {
 							double rat = Double.parseDouble(providedArg);
 						} catch (NumberFormatException nfe) {
 							System.out.println("Provided argument: "+ providedArg +" is not a rational number");
 							res = false;
+						}
+					}
+					if(!res){
+						for(int k = 0; k < vdmGeometries.length; k++){
+							if (vdmGeometries[k].getName().equals(providedArg)){
+								// More to be handled here!
+								res = true;
+							}
 						}
 					}
 				}
