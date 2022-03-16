@@ -29,11 +29,11 @@ public class VDMGeometry {
     }
 
     public String toString(){
-        String res = "\n" + name +" "+ type + " ";
+        String res = "\n" + name +" "+ type + " : ";
  
         for (String key : attributes.keySet())
-            // res = res + key + " - " + attributes.get(key).toString() + "\n";
-            res = res + attributes.get(key).toString() + "\n";
+            res = res + key + " : " + attributes.get(key).toString() + " ";
+            // res = res + attributes.get(key).toString() + "\n";
  
         // attributes.forEach((k, v) -> res = res + k + " " + v + "\n");
         return res;
