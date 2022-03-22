@@ -28,6 +28,11 @@ public class VDMGeometry {
         attributes.put(s, v);
     }
 
+    public String getValue(String key){
+        return attributes.get(key).toString();
+         
+    }
+
     public String toString(){
         String res = "\n" + name +" "+ type + " : ";
  

@@ -59,6 +59,7 @@ public static boolean evalTreeBool(Node root)
 	// Empty tree
 	if (root == null)
 		return false;
+	
 
 	// Evaluate left subtree
 	double leftEval = evalTreeDouble(root.left);
@@ -73,7 +74,11 @@ public static boolean evalTreeBool(Node root)
 	if (root.data.equals(">"))
 		return (leftEval > rightEval) ? true : false;
 
+	if (root.data.equals("and"))
+		return (leftEval == rightEval ) ? true : false;
+
 	return false;
 }
 
 }
+

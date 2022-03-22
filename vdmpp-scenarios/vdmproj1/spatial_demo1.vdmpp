@@ -13,14 +13,16 @@ circle ::
     center: point2D
     radius: nat
     
-instance variables
-    p1 : point2D := mk_point2D(2,2);
-    c1 : circle := mk_circle( mk_point2D(2,2),1);
+-- instance variables
+--     p1 : point2D := mk_point2D(2,2);
+--     c1 : circle := mk_circle( mk_point2D(2,2),1);
 
 operations
-f:point2D*point2D==>bool
-f(p1,p2) == return (p1.x = p2.x and p1.y = p2.y);
+-- coincide:point2D*point2D==>bool
+-- coincide(p1,p2) == return (p1.x = p2.x and p1.y = p2.y);
+
+leftOf: point2D*point2D ==> bool 
+leftOf(p1,p2) == return p1.x<p2.x
 
 -- end spatial_demo1
 end VDMGeometry
-

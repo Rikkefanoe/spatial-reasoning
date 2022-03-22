@@ -9,6 +9,10 @@ import java.util.Vector;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+
 
 
 import com.fujitsu.vdmj.ast.annotations.ASTAnnotation;
@@ -33,6 +37,9 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 	@Override
 	public void astAfter(ClassReader reader, ASTClassDefinition clazz)
 	{
+
+
+//     ** HARD CODED EXAMPLE 		
 		VDMGeometry p1 = new VDMGeometry();
 		RealValue p1x = new RealValue();
 		RealValue p1y = new RealValue();
@@ -62,18 +69,57 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 
 		// read in relation and test
 
-		// for now hardcoded
+		// get all geometry relations
+		List<ASTDefinition> geometryRelations = new Vector<ASTDefinition>();
+		for(int i =0; i<clazz.definitions.size(); i++){
+			if(clazz.definitions.get(i).kind() == "explicit operation"){
+				geometryRelations.add(clazz.definitions.get(i));
+			}
+		}
+		// System.out.println(	geometryRelations);
+		/*
+		leftOf: ((unresolved point2D) * (unresolved point2D) ==> bool)
+        leftOf(p1, p2) ==
+		return (((p1.x) < (p2.x)))
+ 		*/
+		String s1= geometryRelations.get(0).toString();
+		int line1 = s1.indexOf("\n");
+		int line2 = s1.indexOf("\n",line1+1);
+		String line3 = s1.substring(line2);
+		String sign1 = "";
+		Pattern pattern = Pattern.compile("\\).*\\(");
+		Matcher matcher = pattern.matcher(line3);
+		if (matcher.find())
+		{
+		sign1 = matcher.group(0).replaceAll("[)(]","").trim();
+		}
 
-	   EvalExpression evalExpression = new EvalExpression();
-	   evalExpression.root = new EvalExpression.Node("<");
-	   evalExpression.root.left = new EvalExpression.Node(p1x.toString());
-	   evalExpression.root.right = new EvalExpression.Node(p2x.toString());
+		System.out.println(sign1);
 
-	   Boolean eval = EvalExpression.evalTreeBool(evalExpression.root);
-	   System.out.println(eval);
+		VDMGeometry[] vdmGeometries = new VDMGeometry[2];
+		vdmGeometries[0] = p1;
+		vdmGeometries[1] = p2;
+
+		for(int i= 0; i<vdmGeometries.length; i++){
+			for(int j = 0; j<vdmGeometries.length; j++){
+				EvalExpression evalExpression = new EvalExpression();
+				evalExpression.root = new EvalExpression.Node(sign1);
+				evalExpression.root.left = new EvalExpression.Node(vdmGeometries[i].getValue("x"));
+				evalExpression.root.right = new EvalExpression.Node(vdmGeometries[j].getValue("x"));
+				Boolean eval = EvalExpression.evalTreeBool(evalExpression.root);
+				System.out.println(evalExpression.root.left.data + " " + sign1 + " " + evalExpression.root.right.data + " " + eval);
+			}
+
+		}	
 
 
+	//    EvalExpression evalExpression = new EvalExpression();
+	//    evalExpression.root = new EvalExpression.Node(sign1);
+	//    evalExpression.root.left = new EvalExpression.Node(p1x.toString());
+	//    evalExpression.root.right = new EvalExpression.Node(p2x.toString());
 
+	//    Boolean eval = EvalExpression.evalTreeBool(evalExpression.root);
+	//    System.out.println(eval);
 
 
 	}
@@ -84,27 +130,27 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 	// @Override
 	// public void astAfter(ClassReader reader, ASTClassDefinition clazz)
 	// {
-	// 	// System.out.println(args);
+		// System.out.println(args);
 
 		
-	// 	// read file .sp
-	// 	// String filename = "scenario1.sp";
-	// 	String f = args.toString();
-	// 	String filename = f.replaceAll("[()]", "");;
-	// 	List<String> scenarioList = new ArrayList<>();
+		// read file .sp
+		// String filename = "scenario1.sp";
+		// String f = args.toString();
+		// String filename = f.replaceAll("[()]", "");;
+		// List<String> scenarioList = new ArrayList<>();
 
-	// 	try {
-    //         scenarioList = readfile(filename);
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //     }
+		// try {
+        //     scenarioList = readfile(filename);
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // }
 
-	// 	// System.out.println(scenarioList);
+		// System.out.println(scenarioList);
 
-	// 	// get all elements in class
-	// 	// available in clazz.definitions
+		// get all elements in class
+		// available in clazz.definitions
 
-	// 	// get all geometry types
+		// get all geometry types
 	// 	List<ASTDefinition> geometryTypes = new Vector<ASTDefinition>();
 	// 	// get all geometry relations
 	// 	List<ASTDefinition> geometryRelations = new Vector<ASTDefinition>();
@@ -249,95 +295,95 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 	// 	return arrangedTypes;
 
 	// }
-	// // https://mkyong.com/java/java-how-to-read-a-file-into-a-list/
-	// private static List readfile(String fileName) throws IOException {
+	// https://mkyong.com/java/java-how-to-read-a-file-into-a-list/
+	private static List readfile(String fileName) throws IOException {
 
-    //     List<String> result = new ArrayList<>();
-    //     BufferedReader br = null;
+        List<String> result = new ArrayList<>();
+        BufferedReader br = null;
 
-    //     try {
+        try {
 
-    //         br = new BufferedReader(new FileReader(fileName));
+            br = new BufferedReader(new FileReader(fileName));
 
-    //         String line;
-    //         while ((line = br.readLine()) != null) {
-	// 			if(!(line.equals(""))){
-    //             result.add(line);
-	// 			}
-    //         }
+            String line;
+            while ((line = br.readLine()) != null) {
+				if(!(line.equals(""))){
+                result.add(line);
+				}
+            }
 
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //     } finally {
-    //         if (br != null) {
-    //             br.close();
-    //         }
-    //     }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (br != null) {
+                br.close();
+            }
+        }
 
-    //     return result;
-    // }
+        return result;
+    }
 
-	// private boolean checkType(String instance, String type)
-	// {
-	// 	boolean res = false;
-	// 	String[] instanceProps = instance.split("\\s+(?![^\\()]*\\))");
-	// 	String[] typeProps = type.split("\\s+(?![^\\()]*\\))");
-	// 	String instanceName = instanceProps[0];
-	// 	String instanceType = instanceProps[1];
-	// 	String typeName = typeProps[0];
-	// 	if(instanceType.equals(typeName)){
-	// 		res = true;
-	// 	}
-	// 	if(res){
-	// 		// Check number of arguments
-	// 		int nArgsProvided = instanceProps.length-2;
-	// 		int nArgsRequired = typeProps.length-1;
-	// 		if(nArgsProvided != nArgsRequired){
-	// 			System.out.println("Instance " + instanceName + " has " + nArgsProvided + 
-	// 							   " arguments. Expected " + nArgsRequired);
-	// 			res = false;
-	// 		} else {
-	// 			// Check argument types
-	// 			for(int i=0; i<nArgsRequired; i++){
-	// 				String expectedType = typeProps[i+1].split(":")[1];
-	// 				String providedArg = instanceProps[i+2];
-	// 				if(expectedType.equals("rat")){
-	// 					try {
-	// 						double rat = Double.parseDouble(providedArg);
-	// 					} catch (NumberFormatException nfe) {
-	// 						System.out.println("Provided argument: "+ providedArg +" is not a rational number");
-	// 						res = false;
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	return res;
-	// }
+// 	private boolean checkType(String instance, String type)
+// 	{
+// 		boolean res = false;
+// 		String[] instanceProps = instance.split("\\s+(?![^\\()]*\\))");
+// 		String[] typeProps = type.split("\\s+(?![^\\()]*\\))");
+// 		String instanceName = instanceProps[0];
+// 		String instanceType = instanceProps[1];
+// 		String typeName = typeProps[0];
+// 		if(instanceType.equals(typeName)){
+// 			res = true;
+// 		}
+// 		if(res){
+// 			// Check number of arguments
+// 			int nArgsProvided = instanceProps.length-2;
+// 			int nArgsRequired = typeProps.length-1;
+// 			if(nArgsProvided != nArgsRequired){
+// 				System.out.println("Instance " + instanceName + " has " + nArgsProvided + 
+// 								   " arguments. Expected " + nArgsRequired);
+// 				res = false;
+// 			} else {
+// 				// Check argument types
+// 				for(int i=0; i<nArgsRequired; i++){
+// 					String expectedType = typeProps[i+1].split(":")[1];
+// 					String providedArg = instanceProps[i+2];
+// 					if(expectedType.equals("rat")){
+// 						try {
+// 							double rat = Double.parseDouble(providedArg);
+// 						} catch (NumberFormatException nfe) {
+// 							System.out.println("Provided argument: "+ providedArg +" is not a rational number");
+// 							res = false;
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
+// 		return res;
+// 	}
 
 
 
-	// private String removeParanthesis(String s){
-	// 	long countParanthesisStart = s.chars().filter(ch -> ch=='(').count();
-	// 	long countParanthesisEnd = s.chars().filter(ch -> ch==')').count();
+// 	private String removeParanthesis(String s){
+// 		long countParanthesisStart = s.chars().filter(ch -> ch=='(').count();
+// 		long countParanthesisEnd = s.chars().filter(ch -> ch==')').count();
 
-	// 	if(countParanthesisStart>countParanthesisEnd){ // lhs
-	// 		for(int i = 0; i<(countParanthesisStart-countParanthesisEnd); i ++){
-	// 			s = s.substring(s.indexOf("(")+1); 
-	// 		}
-	// 	}else{
-	// 		for(int i = 0; i<(countParanthesisEnd-countParanthesisStart); i ++){ //(x.2))
-	// 			s = s.substring(0,s.lastIndexOf(")")); 
-	// 		}
-	// 	}
+// 		if(countParanthesisStart>countParanthesisEnd){ // lhs
+// 			for(int i = 0; i<(countParanthesisStart-countParanthesisEnd); i ++){
+// 				s = s.substring(s.indexOf("(")+1); 
+// 			}
+// 		}else{
+// 			for(int i = 0; i<(countParanthesisEnd-countParanthesisStart); i ++){ //(x.2))
+// 				s = s.substring(0,s.lastIndexOf(")")); 
+// 			}
+// 		}
 
-	// 	try {
-	// 		s = s.substring(1,s.length()-1);
+// 		try {
+// 			s = s.substring(1,s.length()-1);
 		
-	// 	}finally{
+// 		}finally{
 
-	// 	}
+// 		}
 
-	// 	return s;
-	// }
+// 		return s;
+// 	}
 }
