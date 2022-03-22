@@ -2,8 +2,11 @@ package annotations.ast;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
-public class VDMGeometry {
+public class VDMGeometry extends Value{
     private String name;
     private String type;
     private Map<String, Value> attributes = new HashMap<String,Value>();
@@ -29,13 +32,17 @@ public class VDMGeometry {
     }
 
     public String toString(){
-        String res = "\n" + name +" "+ type + " ";
- 
-        for (String key : attributes.keySet())
-            // res = res + key + " - " + attributes.get(key).toString() + "\n";
-            res = res + attributes.get(key).toString() + "\n";
- 
-        // attributes.forEach((k, v) -> res = res + k + " " + v + "\n");
+        String res = name +" "+ type + " ";
+        List<String> attributeList = new ArrayList<>(attributes.keySet());
+        String lastKey = attributeList.get(attributeList.size()-1);
+        res = res + "(";
+        for (String key : attributeList){
+            res = res + key + " = " + attributes.get(key).toString();
+            if(!key.equals(lastKey)){
+                res = res + ", ";
+            }
+        }
+        res = res + ")";
         return res;
     }
 }

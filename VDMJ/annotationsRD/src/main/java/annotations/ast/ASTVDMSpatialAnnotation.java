@@ -7,11 +7,9 @@ import java.util.ListIterator;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-
 
 import com.fujitsu.vdmj.ast.annotations.ASTAnnotation;
 import com.fujitsu.vdmj.ast.lex.LexIdentifierToken;
@@ -75,10 +73,10 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 		}
 
 		int nInstances = scenarioList.size();
-		VDMGeometry[] vdmGeometries = new VDMGeometry[nInstances];
+		List<VDMGeometry> vdmGeometries = new Vector<VDMGeometry>();
 
 		List<String> arrangedTypes = arrangeTypes(geometryTypes);
-		System.out.println(arrangedTypes);
+		System.out.println("Arranged types: "+arrangedTypes);
 
 		// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 		for(int i = 0; i<scenarioList.size(); i++){
@@ -86,21 +84,20 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 			if(!checkType(scenarioList.get(i), arrangedTypes, vdmGeometries)){
 				status = false;
 			}
-			if(status){
-				String[] instanceProps = scenarioList.get(i).split("\\s+(?![^\\()]*\\))");
-				vdmGeometries[i] = new VDMGeometry();
-				vdmGeometries[i].setName(instanceProps[0]);
-				vdmGeometries[i].setType(instanceProps[1]);
-			}
 			if(!status){
 				System.out.println("Type check failed.");
+			} else{
+				status = parseToInstance(scenarioList.get(i), arrangedTypes, vdmGeometries);
+			}
+			if(!status){
+				System.out.println("Parsing failed.");
 			}
 		}
 
 		System.out.println("--- VDMGeometry instances ---");
-		for(int i = 0; i<scenarioList.size(); i++){
-			if(vdmGeometries[i] != null){
-				System.out.println(vdmGeometries[i].toString());
+		for(int i = 0; i<vdmGeometries.size(); i++){
+			if(vdmGeometries.get(i) != null){
+				System.out.println(vdmGeometries.get(i).toString());
 			}
 		}
 
@@ -108,26 +105,31 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 	private List<String> arrangeTypes(List l)
 	{
 		List<String> arrangedTypes = new ArrayList<>();
-
 		for(int i=0; i<l.size(); i++){
 		// static public point2D = compose point2D of x:rat, y:rat end
 		//				circle = compose circle of center: (unresolved point2D), radius:nat
-		String [] s1 = l.get(i).toString().substring(14,l.get(i).toString().length()-4).replace(",","").split("\\s+(?![^\\()]*\\))"); //https://stackoverflow.com/questions/12884573/split-string-by-all-spaces-except-those-in-brackets
-
+		//https://stackoverflow.com/questions/12884573/split-string-by-all-spaces-except-those-in-brackets
+		String [] s1 = l.get(i).toString().substring(14,l.get(i).toString().length()-4).replace(",","").split("\\s+(?![^\\()]*\\))");
 		// remove 1,2,3,4 from array
 		StringBuilder sb = new StringBuilder(s1[0]);
-		for(int n =s1.length-1; n>4; n--){
-				sb.append(" ");
-				sb.append(s1[n]);
+		for(int n = 5; n<s1.length; n++){
+			sb.append(" ");
+				String temp = s1[n];
+				if(s1[n].contains("(") && s1[n].contains(")")){
+					//Extract "prop:type" from "prop:(unresolved type)"
+					String prop = temp.substring(0, temp.indexOf("("));
+					String type = temp.substring(temp.indexOf("(")+1,temp.indexOf(")"));
+					String[] splitTemp = type.split("\\s");
+					type = splitTemp[splitTemp.length-1];
+					temp = prop+type;
+				}
+				sb.append(temp);
 			}
-
 			arrangedTypes.add(sb.toString());
 		}
-			// System.out.println(arrangedTypes);
-
 		return arrangedTypes;
-
 	}
+
 	// https://mkyong.com/java/java-how-to-read-a-file-into-a-list/
 	private static List readfile(String fileName) throws IOException {
 
@@ -156,21 +158,23 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
         return result;
     }
 
-	private boolean checkType(String instance, List<String> validTypes, VDMGeometry[] vdmGeometries)
+	/**
+	 * Returns an indication of whether the instance passed the typecheck
+	 * @param instance the instance to typecheck
+	 * @param validTypes the valid types from the VDM specification
+	 * @param vdmGeometries the previously passed types
+	 */
+	private boolean checkType(String instance, List<String> validTypes, List<VDMGeometry> vdmGeometries)
 	{
-		System.out.println("Instance: "+instance+" validTypes: "+validTypes);
 		boolean res = false;
 		String[] instanceProps = instance.split("\\s+(?![^\\()]*\\))");
 		String instanceName = instanceProps[0];
 		String instanceType = instanceProps[1];
-		for(int i = 0; i<validTypes.size(); i++){
+		for(int i = 0; i < validTypes.size() && !res; i++){
 			String[] typeProps = validTypes.get(i).split("\\s+(?![^\\()]*\\))");
 			String typeName = typeProps[0];
-			if(instanceType.equals(typeName)){
-				res = true;
-			}
-			if(res){
-				// Check number of arguments
+			if(instanceType.equals(typeName)) res = true;
+			if(res){ // Check number of arguments
 				int nArgsProvided = instanceProps.length-2;
 				int nArgsRequired = typeProps.length-1;
 				if(nArgsProvided != nArgsRequired){
@@ -179,32 +183,80 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 					res = false;
 				}
 			}
-			if(res){
-				// Check argument types
+			if(res){ // Check argument types
 				for(int j=0; j<(typeProps.length-1); j++){
-					String expectedType = typeProps[j+1].split(":")[1];
+					String expectedType = "";
+					if(typeProps[j+1].contains(":")){
+						expectedType = typeProps[j+1].split(":")[1];
+					} else{
+						expectedType = typeProps[j+1];
+					}
 					String providedArg = instanceProps[j+2];
 					if(expectedType.equals("rat")){
-						try {
-							double rat = Double.parseDouble(providedArg);
+						try { double rat = Double.parseDouble(providedArg);
 						} catch (NumberFormatException nfe) {
 							System.out.println("Provided argument: "+ providedArg +" is not a rational number");
 							res = false;
 						}
 					}
-					if(!res){
-						for(int k = 0; k < vdmGeometries.length; k++){
-							if (vdmGeometries[k].getName().equals(providedArg)){
-								// More to be handled here!
+					else{
+						res = false;
+						expectedType = expectedType.replaceAll("[()]|unresolved|\\s", ""); // Remove "(unresolved ...)"
+						for(int k = 0; k < vdmGeometries.size() && !res; k++){
+							VDMGeometry checkedType = vdmGeometries.get(k);
+							String defName = checkedType.getName();
+							String defType = checkedType.getType();
+							if (defName.equals(providedArg) && defType.equals(expectedType)){
 								res = true;
 							}
 						}
 					}
+					if(!res) System.out.println("Unsupported type: "+providedArg+", expectedType: "+expectedType);
 				}
+				if(!res) System.out.println("Supported types are: "+validTypes);
 			}
 		}
 		return res;
 	}
 
+	private boolean parseToInstance(String instance, List<String> validTypes, List<VDMGeometry> geometries){
+		String[] instanceProps = instance.split("\\s+(?![^\\()]*\\))");
+		VDMGeometry newGeometry = new VDMGeometry();
+		newGeometry.setName(instanceProps[0]);
+		newGeometry.setType(instanceProps[1]);
+		boolean res = false;
+		for(int i = 2; i<instanceProps.length; i++){
+			res = false;
+			VDMGeometry temp = null;
+			String attrKey = "";
+			Value attrVal = null;
+			// Find name of attribute (key)
+			for(int j = 0; j < validTypes.size(); j++){
+				String[] validProps = validTypes.get(j).split("\\s+(?![^\\()]*\\))");
+				if(validProps[0].equals(newGeometry.getType())){
+					attrKey = validProps[i-1];
+					res = true;
+					break;
+				}
+			}
+			// Check if parameter references other instance
+			for(int j = 0; j<geometries.size(); j++){
+				if(geometries.get(j).equals(instanceProps[i])){
+					temp = geometries.get(j);
+					break;
+				}
+			}
+			if(temp != null){
+				attrVal = temp;
+			} else { // Here we assume rationals/reals are the only alternative to defined types
+				RealValue realVal = new RealValue();
+				realVal.s = instanceProps[i];
+				attrVal = realVal;
+			}
+			newGeometry.addAttribute(attrKey, attrVal);
+		}
+		geometries.add(newGeometry);
+		return res;
+	};
 
 }
