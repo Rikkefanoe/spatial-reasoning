@@ -6,8 +6,8 @@ public class RealValue extends Value{
 
     @Override
     public String toString(){
-        return s;
-        // return Double.toString(v);
+        // return s;
+        return Double.toString(v);
     }
 
 }
