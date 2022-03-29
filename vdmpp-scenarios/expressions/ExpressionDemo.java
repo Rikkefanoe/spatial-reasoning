@@ -1,3 +1,6 @@
+import java.util.HashMap;
+import java.util.Map;
+
 
 interface Expr{
   void accept(ExprVisitor visitor);
@@ -188,6 +191,50 @@ class Number implements ArithExpr {
 }
 
 
+///////////////////////////////////
+////  Variable Expressions   //////
+///////////////////////////////////
+interface VariableExpr extends Expr {};
+
+class SubstitutionExpr implements VariableExpr, ArithExpr {
+  SubstitutionExpr(Map<Variable, Number> m, Variable v) {map = m; variable = v;}
+  public Map<Variable, Number> map;
+  public Variable variable;
+
+  @Override
+  public void accept(ExprVisitor visitor){
+    visitor.visit(this);
+  }
+}
+
+class EqualVariableExpr implements VariableExpr{
+  EqualVariableExpr(VariableExpr e1, VariableExpr e2) {
+    left = e1;
+    right = e2;
+  }
+  
+  public VariableExpr left;
+  public VariableExpr right;
+
+  @Override
+  public void accept(ExprVisitor visitor) {
+      visitor.visit(this);
+  }
+
+}
+
+class Variable implements VariableExpr {
+  Variable(String v) {variable = v;}
+  public String variable;
+
+  @Override
+  public void accept(ExprVisitor visitor){
+    visitor.visit(this);
+  }
+
+}
+
+
 /////////////////////
 ////  Visitors //////
 /////////////////////
@@ -204,6 +251,11 @@ interface ExprVisitor {
     void visit(GreaterThanExpr e);
     void visit(PlusExpr e);
     void visit(Number e);
+
+
+    void visit(Variable e);
+    void visit(EqualVariableExpr e);
+    void visit(SubstitutionExpr e);
 }
 
 
@@ -303,6 +355,29 @@ class ExprPrintVisitor implements ExprVisitor {
         System.out.print(e.value);
     }
 
+
+    @Override
+    public void visit(Variable e) {
+        System.out.print(e.variable);
+    }
+
+    @Override
+    public void visit(EqualVariableExpr e) {
+        System.out.print("(");
+        e.left.accept(this);
+        System.out.print(" == ");
+        e.right.accept(this);
+        System.out.print(")");
+    }
+    @Override
+    public void visit(SubstitutionExpr e) {
+      if(e.map.containsKey(e.variable)){
+        System.out.print(e.variable.variable + " = " + e.map.get(e.variable).value);
+      }
+
+
+    }
+
 }
 
 //////////////////////////////
@@ -313,6 +388,7 @@ class ExprEvalVisitor implements ExprVisitor {
 
     public double  last_double_result;
     public boolean last_bool_result;
+    public String last_string_result;
 
     @Override
     public void visit(AndExpr e) {
@@ -410,6 +486,27 @@ class ExprEvalVisitor implements ExprVisitor {
         last_double_result = e.value;
     }
 
+    @Override
+    public void visit(Variable e) {
+      last_string_result = e.variable;
+    }
+
+    @Override
+    public void visit(EqualVariableExpr e) {
+        e.left.accept(this);
+        String r1 = last_string_result;
+        e.right.accept(this);
+        String r2 = last_string_result;
+        last_bool_result = (r1 == r2);
+    }
+    @Override
+    public void visit(SubstitutionExpr e) {
+      if(e.map.containsKey(e.variable)){
+        last_double_result =  e.map.get(e.variable).value;
+      }
+    }
+
+
 }
 
 
@@ -436,11 +533,30 @@ public class ExpressionDemo {
       v.visit(n);
       // visitor.visit(this);
       n.accept(v);
+    }
 
 
+    public static void testVariable(){
+      Variable v = new Variable("p1.x");
+      ExprPrintVisitor p = new ExprPrintVisitor();
+      p.visit(v);
+    }
+    public static void testSubstitution(){
+        Variable x1 = new Variable("x1");
+        Variable x2 = new Variable("x2");
+
+        Map<Variable, Number> map = new HashMap<Variable, Number>();
+
+        map.put(x1, new Number(5));
+        map.put(x2, new Number(1));
+
+        SubstitutionExpr s1 = new SubstitutionExpr(map, x1);
+        ExprPrintVisitor p = new ExprPrintVisitor();
+        p.visit(s1);
     }
 
     public static void main(final String[] args) {
+
        Expr e1 = new AndExpr(
                   new LessThanExpr(
                     new PlusExpr(new Number(3), new Number(4)),
@@ -470,12 +586,6 @@ public class ExpressionDemo {
                   new BooleanValue(true)
                   );
 
-
-      Expr e5 = new NotExpr(
-          new BooleanValue(true)
-          );
-
-
       Expr e6 = new AndExpr(
         new LessThanExpr(
           new PlusExpr(new Number(3), new Number(4)),
@@ -486,19 +596,49 @@ public class ExpressionDemo {
           )
       );
 
-      Expr e7 = new AndExpr(
+      // Expr e7 = new AndExpr(
+      //   new EqualBoolExpr(new BooleanValue(true), new BooleanValue(true)),
+      //   new EqualArithExpr(new Number(5), new Number(5))
+      //   );
+
+
+      Expr e8 = new EqualVariableExpr(new Variable("x1"), new Variable("x2"));
+
+      Variable x1 = new Variable("x1");
+      Variable x2 = new Variable("x2");
+      Variable x3 = new Variable("x3");
+      Variable x4 = new Variable("x4");
+
+      Map<Variable, Number> map = new HashMap<Variable, Number>();
+
+      map.put(x1, new Number(5));
+      map.put(x2, new Number(1));
+      map.put(x3, new Number(3));
+      map.put(x4, new Number(4));
+
+      Expr e9 = new AndExpr(
         new EqualBoolExpr(new BooleanValue(true), new BooleanValue(true)),
-        new EqualArithExpr(new Number(5), new Number(5))
+        new EqualArithExpr(new SubstitutionExpr(map, x1), new SubstitutionExpr(map, x2))
         );
-
-
+  
+        Expr e10 = new AndExpr(
+        new LessThanExpr(
+          new PlusExpr(new SubstitutionExpr(map, x3), new SubstitutionExpr(map, x4)),
+          new Number(100)
+        ),
+        new NotExpr(
+          new BooleanValue(false)
+          )
+      );
       // testExpression(e1);
       // testExpression(e2);
       // testExpression(e3);
       // testExpression(e4);      
-      testExpression(e7);
-
+      testExpression(e9);
+      testExpression(e10);
+      // testVariable();
       // test1();
+      // testSubstitution();
 
 
       /*
@@ -511,7 +651,7 @@ public class ExpressionDemo {
       - substitution as a new kind of visitor -> maybe takes a map(variable -> expression)
           end up with a new expression 
           - define a binding
-          - if it is a free variable -> first develop without thinking og quantifiers
+          - if it is a free variable -> first develop without thinking of quantifiers
           - p1.x == p2.x      
           
           and(variable(p1.x),variable(p2.x))
