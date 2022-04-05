@@ -1,4 +1,6 @@
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -65,7 +67,6 @@ class NotExpr implements BoolExpr {
   
   NotExpr(BoolExpr e1) {
     left = e1;
-
   }
 
   public BoolExpr left;
@@ -106,7 +107,7 @@ class BooleanValue implements BoolExpr {
 }
 
 
-class LessThanExpr implements BoolExpr {
+class LessThanExpr implements BoolExpr, ArithExpr {
 
   LessThanExpr(ArithExpr e1, ArithExpr e2) {
     left = e1;
@@ -178,7 +179,51 @@ class PlusExpr implements ArithExpr{
   }
 
 }
+class SubtractionExpr implements ArithExpr{
+  SubtractionExpr(ArithExpr e1, ArithExpr e2) {
+    left = e1;
+    right = e2;
+  }
+  
+  public ArithExpr left;
+  public ArithExpr right;
 
+  @Override
+  public void accept(ExprVisitor visitor) {
+      visitor.visit(this);
+  }
+
+}
+class MultiplicationExpr implements ArithExpr{
+  MultiplicationExpr(ArithExpr e1, ArithExpr e2) {
+    left = e1;
+    right = e2;
+  }
+  
+  public ArithExpr left;
+  public ArithExpr right;
+
+  @Override
+  public void accept(ExprVisitor visitor) {
+      visitor.visit(this);
+  }
+
+}
+class DivisionExpr implements ArithExpr{
+  DivisionExpr(ArithExpr e1, ArithExpr e2) {
+    left = e1;
+    right = e2;
+  }
+  
+  public ArithExpr left;
+  public ArithExpr right;
+
+  @Override
+  public void accept(ExprVisitor visitor) {
+      visitor.visit(this);
+  }
+
+}
 class Number implements ArithExpr {
   Number(int v) {value = v;}
   public int value;
@@ -196,16 +241,6 @@ class Number implements ArithExpr {
 ///////////////////////////////////
 interface VariableExpr extends Expr {};
 
-class SubstitutionExpr implements VariableExpr, ArithExpr {
-  SubstitutionExpr(Map<Variable, Number> m, Variable v) {map = m; variable = v;}
-  public Map<Variable, Number> map;
-  public Variable variable;
-
-  @Override
-  public void accept(ExprVisitor visitor){
-    visitor.visit(this);
-  }
-}
 
 class EqualVariableExpr implements VariableExpr{
   EqualVariableExpr(VariableExpr e1, VariableExpr e2) {
@@ -223,9 +258,9 @@ class EqualVariableExpr implements VariableExpr{
 
 }
 
-class Variable implements VariableExpr {
-  Variable(String v) {variable = v;}
-  public String variable;
+class Variable implements VariableExpr, ArithExpr, BoolExpr {
+  Variable(String v) {name = v;}
+  public String name;
 
   @Override
   public void accept(ExprVisitor visitor){
@@ -233,6 +268,358 @@ class Variable implements VariableExpr {
   }
 
 }
+///////////////////////////////////
+////       Substitution      //////
+///////////////////////////////////
+
+class SubstVisitor implements ExprVisitor {
+  // Map<Variable, Expr> bindings = new HashMap<Variable, Expr>();
+  // public void addBinding(Variable v, Expr e) {
+  Map<String, Expr> bindings = new HashMap<String, Expr>();
+  public void addBinding(String v, Expr e) {
+    bindings.put(v,e);
+  }
+  public Expr last_subst_expr;
+
+  @Override
+  public void visit(AndExpr e) {
+      e.left.accept(this);
+      BoolExpr r1 = (BoolExpr) last_subst_expr;
+      e.right.accept(this);
+      BoolExpr r2 = (BoolExpr) last_subst_expr;
+      last_subst_expr = new AndExpr(r1, r2);
+  }
+  @Override
+  public void visit(OrExpr e){
+    e.left.accept(this);
+    BoolExpr r1 = (BoolExpr) last_subst_expr;
+    e.right.accept(this);
+    BoolExpr r2 = (BoolExpr) last_subst_expr;
+    last_subst_expr = new OrExpr(r1, r2);
+  }
+  @Override
+  public void visit(ImpliesExpr e){
+    e.left.accept(this);
+    BoolExpr r1 = (BoolExpr) last_subst_expr;
+    e.right.accept(this);
+    BoolExpr r2 = (BoolExpr) last_subst_expr;
+    last_subst_expr = new ImpliesExpr(r1, r2);
+  }
+  @Override
+  public void visit(NotExpr e){
+    e.left.accept(this);
+    BoolExpr r1 = (BoolExpr) last_subst_expr;
+    last_subst_expr = new NotExpr(r1);
+  }
+  
+  @Override
+  public void visit(EqualBoolExpr e){
+    e.left.accept(this);
+    BoolExpr r1 = (BoolExpr) last_subst_expr;
+    e.right.accept(this);
+    BoolExpr r2 = (BoolExpr) last_subst_expr;
+    last_subst_expr = new EqualBoolExpr(r1, r2);
+  }
+
+  /////////
+
+
+  @Override
+  public void visit(LessThanExpr e) {
+      e.left.accept(this);
+      ArithExpr r1 = (ArithExpr) last_subst_expr;
+      e.right.accept(this);
+      ArithExpr r2 = (ArithExpr) last_subst_expr;
+      last_subst_expr = new LessThanExpr(r1, r2);
+  }
+
+  @Override
+  public void visit(PlusExpr e) {
+      e.left.accept(this);
+      ArithExpr r1 = (ArithExpr) last_subst_expr;
+      e.right.accept(this);
+      ArithExpr r2 = (ArithExpr) last_subst_expr;
+      last_subst_expr = new PlusExpr(r1, r2);
+  }
+
+  @Override
+  public void visit(SubtractionExpr e) {
+      e.left.accept(this);
+      ArithExpr r1 = (ArithExpr) last_subst_expr;
+      e.right.accept(this);
+      ArithExpr r2 = (ArithExpr) last_subst_expr;
+      last_subst_expr = new SubtractionExpr(r1, r2);
+  }
+  @Override
+  public void visit(MultiplicationExpr e) {
+      e.left.accept(this);
+      ArithExpr r1 = (ArithExpr) last_subst_expr;
+      e.right.accept(this);
+      ArithExpr r2 = (ArithExpr) last_subst_expr;
+      last_subst_expr = new MultiplicationExpr(r1, r2);
+  }
+  @Override
+  public void visit(DivisionExpr e) {
+      e.left.accept(this);
+      ArithExpr r1 = (ArithExpr) last_subst_expr;
+      e.right.accept(this);
+      ArithExpr r2 = (ArithExpr) last_subst_expr;
+      last_subst_expr = new DivisionExpr(r1, r2);
+  }
+
+
+  
+  @Override
+  public void visit(EqualArithExpr e){
+    e.left.accept(this);
+    ArithExpr r1 = (ArithExpr) last_subst_expr;
+    e.right.accept(this);
+    ArithExpr r2 = (ArithExpr) last_subst_expr;
+    last_subst_expr = new EqualArithExpr(r1, r2);
+  }
+  @Override
+  public void visit(GreaterThanExpr e){
+    e.left.accept(this);
+    ArithExpr r1 = (ArithExpr) last_subst_expr;
+    e.right.accept(this);
+    ArithExpr r2 = (ArithExpr) last_subst_expr;
+    last_subst_expr = new GreaterThanExpr(r1, r2);
+  }
+  
+  /////////
+
+  @Override
+  public void visit(BooleanValue e) {
+      last_subst_expr = new BooleanValue(e.value);
+  }
+
+  @Override
+  public void visit(Number e) {
+      last_subst_expr = new Number(e.value);
+  }
+
+  @Override
+  public void visit(Variable v) {
+    if(bindings.containsKey(v.name)) {
+        last_subst_expr = bindings.get(v.name);
+      } else {
+        last_subst_expr = new Variable(v.name);
+      }
+  }
+
+  @Override
+  public void visit(EqualVariableExpr e){
+    e.left.accept(this);
+    VariableExpr r1 = (VariableExpr) last_subst_expr;
+    e.right.accept(this);
+    VariableExpr r2 = (VariableExpr) last_subst_expr;
+    last_subst_expr = new EqualVariableExpr(r1, r2);
+  }
+
+  @Override
+  public void visit(PredicateDefinition e) {
+    last_subst_expr = new PredicateDefinition(e.name, e.arity, e.variable_names, e.expr_def, e.vMap);
+    
+  }
+}
+///////////////////////////////////
+////   Predicate definition  //////
+///////////////////////////////////
+
+interface PredicateExpr extends Expr{};
+
+class PredicateDefinition implements PredicateExpr{
+  String name;
+  int arity;
+  List<String> variable_names;
+  Map<String, Expr> vMap = new HashMap<String, Expr>();
+  Expr expr_def;
+  
+  
+
+  PredicateDefinition(String n, int a, List<String> v, Expr d, Map<String, Expr> sv){
+    name = n;
+    arity=a;
+    variable_names = v;
+    expr_def = d;
+
+    for(int i =0; i<arity; i++){
+      vMap.put(variable_names.get(i), sv.get(variable_names.get(i)));
+    }
+
+  }
+
+  @Override
+  public void accept(ExprVisitor visitor){
+    visitor.visit(this);
+  }
+}
+
+
+class PredicateSubstVisitor implements ExprVisitor{
+  List<PredicateDefinition> defs = new ArrayList<>();
+  public void addPredicate(PredicateDefinition pred) {
+    defs.add(pred);
+  }
+  public Expr last_predSubst_expr;
+  
+
+  @Override
+  public void visit(BooleanValue e) {
+    last_predSubst_expr = new BooleanValue(e.value);
+  }
+
+  @Override
+  public void visit(Number e) {
+    last_predSubst_expr = new Number(e.value);
+  }
+
+  @Override
+  public void visit(Variable v) {
+        last_predSubst_expr = new Variable(v.name);
+  }
+
+  @Override
+  public void visit(PredicateDefinition p){
+    for (PredicateDefinition pDef : defs) {
+      if(pDef.name == p.name && pDef.arity == p.arity){
+        SubstVisitor v = new SubstVisitor();
+        Expr e;
+        for(int i =0; i<pDef.arity; i++){
+          Variable variable = new Variable(pDef.variable_names.get(i));
+          if(p.vMap.get(variable.name)!=null){
+            e = p.vMap.get(variable.name);
+          }else{
+            e = variable;
+          }
+          v.addBinding(variable.name,e);
+
+        }
+
+        pDef.expr_def.accept(v);
+        last_predSubst_expr = v.last_subst_expr;
+      }
+    }
+
+  }
+
+  @Override
+  public void visit(AndExpr e) {
+    e.left.accept(this);
+    BoolExpr r1 = (BoolExpr) last_predSubst_expr;
+    e.right.accept(this);
+    BoolExpr r2 = (BoolExpr) last_predSubst_expr;
+    last_predSubst_expr = new AndExpr(r1, r2);    
+  }
+
+  @Override
+  public void visit(OrExpr e) {
+    e.left.accept(this);
+    BoolExpr r1 = (BoolExpr) last_predSubst_expr;
+    e.right.accept(this);
+    BoolExpr r2 = (BoolExpr) last_predSubst_expr;
+    last_predSubst_expr = new OrExpr(r1, r2);    
+  }
+
+  @Override
+  public void visit(ImpliesExpr e) {
+    e.left.accept(this);
+    BoolExpr r1 = (BoolExpr) last_predSubst_expr;
+    e.right.accept(this);
+    BoolExpr r2 = (BoolExpr) last_predSubst_expr;
+    last_predSubst_expr = new ImpliesExpr(r1, r2);    
+  }
+
+  @Override
+  public void visit(NotExpr e) {
+    e.left.accept(this);
+    BoolExpr r1 = (BoolExpr) last_predSubst_expr;
+    last_predSubst_expr = new NotExpr(r1);    
+  }
+
+  @Override
+  public void visit(EqualBoolExpr e) {
+    e.left.accept(this);
+    BoolExpr r1 = (BoolExpr) last_predSubst_expr;
+    e.right.accept(this);
+    BoolExpr r2 = (BoolExpr) last_predSubst_expr;
+    last_predSubst_expr = new EqualBoolExpr(r1, r2);    
+  }
+
+  @Override
+  public void visit(EqualArithExpr e) {
+    e.left.accept(this);
+    ArithExpr r1 = (ArithExpr) last_predSubst_expr;
+    e.right.accept(this);
+    ArithExpr r2 = (ArithExpr) last_predSubst_expr;
+    last_predSubst_expr = new EqualArithExpr(r1, r2);    
+  }
+
+  @Override
+  public void visit(LessThanExpr e) {
+    e.left.accept(this);
+    ArithExpr r1 = (ArithExpr) last_predSubst_expr;
+    e.right.accept(this);
+    ArithExpr r2 = (ArithExpr) last_predSubst_expr;
+    last_predSubst_expr = new LessThanExpr(r1, r2);     
+  }
+
+  @Override
+  public void visit(GreaterThanExpr e) {
+    e.left.accept(this);
+    ArithExpr r1 = (ArithExpr) last_predSubst_expr;
+    e.right.accept(this);
+    ArithExpr r2 = (ArithExpr) last_predSubst_expr;
+    last_predSubst_expr = new GreaterThanExpr(r1, r2);    
+  }
+
+  @Override
+  public void visit(PlusExpr e) {
+    e.left.accept(this);
+    ArithExpr r1 = (ArithExpr) last_predSubst_expr;
+    e.right.accept(this);
+    ArithExpr r2 = (ArithExpr) last_predSubst_expr;
+    last_predSubst_expr = new PlusExpr(r1, r2);    
+  }
+
+  @Override
+  public void visit(SubtractionExpr e) {
+    e.left.accept(this);
+    ArithExpr r1 = (ArithExpr) last_predSubst_expr;
+    e.right.accept(this);
+    ArithExpr r2 = (ArithExpr) last_predSubst_expr;
+    last_predSubst_expr = new SubtractionExpr(r1, r2);    
+  }
+
+  @Override
+  public void visit(MultiplicationExpr e) {
+    e.left.accept(this);
+    ArithExpr r1 = (ArithExpr) last_predSubst_expr;
+    e.right.accept(this);
+    ArithExpr r2 = (ArithExpr) last_predSubst_expr;
+    last_predSubst_expr = new MultiplicationExpr(r1, r2);    
+  }
+
+  @Override
+  public void visit(DivisionExpr e) {
+    e.left.accept(this);
+    ArithExpr r1 = (ArithExpr) last_predSubst_expr;
+    e.right.accept(this);
+    ArithExpr r2 = (ArithExpr) last_predSubst_expr;
+    last_predSubst_expr = new DivisionExpr(r1, r2);    
+  }
+
+  @Override
+  public void visit(EqualVariableExpr e) {
+    e.left.accept(this);
+    ArithExpr r1 = (ArithExpr) last_predSubst_expr;
+    e.right.accept(this);
+    ArithExpr r2 = (ArithExpr) last_predSubst_expr;
+    last_predSubst_expr = new EqualArithExpr(r1, r2);    
+  }
+}
+
+
 
 
 /////////////////////
@@ -246,17 +633,21 @@ interface ExprVisitor {
     void visit(NotExpr e);
     void visit(EqualBoolExpr e);
     void visit(BooleanValue e);
+
     void visit(EqualArithExpr e);
     void visit(LessThanExpr e);
     void visit(GreaterThanExpr e);
     void visit(PlusExpr e);
+    void visit(SubtractionExpr e);
+    void visit(MultiplicationExpr e);
+    void visit(DivisionExpr e);
     void visit(Number e);
-
 
     void visit(Variable e);
     void visit(EqualVariableExpr e);
-    void visit(SubstitutionExpr e);
-}
+
+    void visit(PredicateDefinition e);
+  }
 
 
 ////////////////////////////
@@ -349,6 +740,30 @@ class ExprPrintVisitor implements ExprVisitor {
         e.right.accept(this);
         System.out.print(")");
     }
+    @Override
+    public void visit(SubtractionExpr e) {
+        System.out.print("(");
+        e.left.accept(this);
+        System.out.print(" - ");
+        e.right.accept(this);
+        System.out.print(")");
+    }
+    @Override
+    public void visit(MultiplicationExpr e) {
+        System.out.print("(");
+        e.left.accept(this);
+        System.out.print(" * ");
+        e.right.accept(this);
+        System.out.print(")");
+    }
+    @Override
+    public void visit(DivisionExpr e) {
+        System.out.print("(");
+        e.left.accept(this);
+        System.out.print(" / ");
+        e.right.accept(this);
+        System.out.print(")");
+    }
 
     @Override
     public void visit(Number e) {
@@ -358,7 +773,7 @@ class ExprPrintVisitor implements ExprVisitor {
 
     @Override
     public void visit(Variable e) {
-        System.out.print(e.variable);
+        System.out.print(e.name);
     }
 
     @Override
@@ -369,15 +784,12 @@ class ExprPrintVisitor implements ExprVisitor {
         e.right.accept(this);
         System.out.print(")");
     }
+  
     @Override
-    public void visit(SubstitutionExpr e) {
-      if(e.map.containsKey(e.variable)){
-        System.out.print(e.variable.variable + " = " + e.map.get(e.variable).value);
-      }
-
-
+    public void visit(PredicateDefinition e) {
+      System.out.print(e.name);
+      
     }
-
 }
 
 //////////////////////////////
@@ -482,13 +894,42 @@ class ExprEvalVisitor implements ExprVisitor {
     }
 
     @Override
+    public void visit(SubtractionExpr e) {
+        e.left.accept(this);
+        double r1 = last_double_result;
+        e.right.accept(this);
+        double r2 = last_double_result;
+
+        last_double_result = r1 - r2;
+    }
+    @Override
+    public void visit(MultiplicationExpr e) {
+        e.left.accept(this);
+        double r1 = last_double_result;
+        e.right.accept(this);
+        double r2 = last_double_result;
+
+        last_double_result = r1 * r2;
+    }
+    @Override
+    public void visit(DivisionExpr e) {
+        e.left.accept(this);
+        double r1 = last_double_result;
+        e.right.accept(this);
+        double r2 = last_double_result;
+
+        last_double_result = r1 / r2;
+    }
+
+    @Override
     public void visit(Number e) {
         last_double_result = e.value;
     }
 
     @Override
     public void visit(Variable e) {
-      last_string_result = e.variable;
+      last_string_result = e.name;
+      
     }
 
     @Override
@@ -499,13 +940,12 @@ class ExprEvalVisitor implements ExprVisitor {
         String r2 = last_string_result;
         last_bool_result = (r1 == r2);
     }
-    @Override
-    public void visit(SubstitutionExpr e) {
-      if(e.map.containsKey(e.variable)){
-        last_double_result =  e.map.get(e.variable).value;
-      }
-    }
 
+    @Override
+    public void visit(PredicateDefinition e) {
+      last_string_result = e.name;
+      
+    }
 
 }
 
@@ -541,19 +981,87 @@ public class ExpressionDemo {
       ExprPrintVisitor p = new ExprPrintVisitor();
       p.visit(v);
     }
-    public static void testSubstitution(){
-        Variable x1 = new Variable("x1");
-        Variable x2 = new Variable("x2");
 
-        Map<Variable, Number> map = new HashMap<Variable, Number>();
+    public static void substTest() {  
+      Variable x = new Variable("X");
 
-        map.put(x1, new Number(5));
-        map.put(x2, new Number(1));
+      Expr e = 
+        new EqualArithExpr(
+          new Variable("X"), new Number(4)
+      );
 
-        SubstitutionExpr s1 = new SubstitutionExpr(map, x1);
-        ExprPrintVisitor p = new ExprPrintVisitor();
-        p.visit(s1);
-    }
+      SubstVisitor subst = new SubstVisitor();
+      subst.addBinding(x.name, new Number(4));
+      e.accept(subst);
+ 
+      Expr esub = subst.last_subst_expr;
+
+      System.out.println("The expression is:");
+      esub.accept(new ExprPrintVisitor());
+      System.out.println("\n");
+
+      ExprEvalVisitor eval = new ExprEvalVisitor();
+      esub.accept(eval);
+      System.out.println("The expression evaluates to: " + eval.last_bool_result);
+
+   }
+
+   public static void substTest2() {
+    Expr e = 
+      new LessThanExpr(
+        new Variable("X"), new Number(4)
+    );
+
+    SubstVisitor subst = new SubstVisitor();
+    // subst.addBinding(new Variable("X"), new Number(5));
+    e.accept(subst);
+   
+    Expr esub = subst.last_subst_expr;
+
+    System.out.println("The expression is:");
+    esub.accept(new ExprPrintVisitor());
+    System.out.println("\n");
+
+    ExprEvalVisitor eval = new ExprEvalVisitor();
+    esub.accept(eval);
+    System.out.println("The expression evaluates to: " + eval.last_bool_result);
+ }
+
+
+ public static void predTest1() {
+
+  Variable x = new Variable("X");
+  Variable y = new Variable("Y");
+  Variable b = new Variable("B");
+
+  SubstVisitor substv = new SubstVisitor();
+  substv.addBinding(x.name, new Number(1));
+  substv.addBinding(y.name, new Number(2));
+  substv.addBinding(b.name, new BooleanValue(false));
+  
+  
+  List<String> list = new ArrayList<String>();
+  list.add(x.name);
+  list.add(y.name);
+  list.add(b.name);
+
+  PredicateDefinition p = new PredicateDefinition("L", 3, list, new AndExpr(new LessThanExpr(x, y),b), substv.bindings);
+  
+  PredicateSubstVisitor subst = new PredicateSubstVisitor();
+  subst.addPredicate(p);
+  p.accept(subst);
+
+  Expr esub = subst.last_predSubst_expr;
+
+  System.out.println("The expression is:");
+  esub.accept(new ExprPrintVisitor());
+  System.out.println("\n");
+
+  ExprEvalVisitor eval = new ExprEvalVisitor();
+  esub.accept(eval);
+  System.out.println("The expression evaluates to: " + eval.last_bool_result);
+}
+    
 
     public static void main(final String[] args) {
 
@@ -596,50 +1104,20 @@ public class ExpressionDemo {
           )
       );
 
-      // Expr e7 = new AndExpr(
-      //   new EqualBoolExpr(new BooleanValue(true), new BooleanValue(true)),
-      //   new EqualArithExpr(new Number(5), new Number(5))
-      //   );
+      Expr e7 = new AndExpr(
+        new EqualBoolExpr(new BooleanValue(true), new BooleanValue(true)),
+        new EqualArithExpr(new Number(5), new Number(5))
+        );
 
 
       Expr e8 = new EqualVariableExpr(new Variable("x1"), new Variable("x2"));
 
-      Variable x1 = new Variable("x1");
-      Variable x2 = new Variable("x2");
-      Variable x3 = new Variable("x3");
-      Variable x4 = new Variable("x4");
-
-      Map<Variable, Number> map = new HashMap<Variable, Number>();
-
-      map.put(x1, new Number(5));
-      map.put(x2, new Number(1));
-      map.put(x3, new Number(3));
-      map.put(x4, new Number(4));
-
-      Expr e9 = new AndExpr(
-        new EqualBoolExpr(new BooleanValue(true), new BooleanValue(true)),
-        new EqualArithExpr(new SubstitutionExpr(map, x1), new SubstitutionExpr(map, x2))
-        );
-  
-        Expr e10 = new AndExpr(
-        new LessThanExpr(
-          new PlusExpr(new SubstitutionExpr(map, x3), new SubstitutionExpr(map, x4)),
-          new Number(100)
-        ),
-        new NotExpr(
-          new BooleanValue(false)
-          )
-      );
       // testExpression(e1);
-      // testExpression(e2);
-      // testExpression(e3);
-      // testExpression(e4);      
-      testExpression(e9);
-      testExpression(e10);
-      // testVariable();
-      // test1();
-      // testSubstitution();
+ 
+      // substTest();
+      // substTest2();
 
+      predTest1();
 
       /*
       - create a new variable type - maybe string
