@@ -13,11 +13,20 @@ import java.io.IOException;
 
 import com.fujitsu.vdmj.ast.annotations.ASTAnnotation;
 import com.fujitsu.vdmj.ast.lex.LexIdentifierToken;
-import com.fujitsu.vdmj.ast.definitions.ASTDefinition;
 import com.fujitsu.vdmj.syntax.ClassReader;
 import com.fujitsu.vdmj.ast.definitions.ASTClassDefinition;
-import com.fujitsu.vdmj.ast.expressions.ASTExpression;
 
+import com.fujitsu.vdmj.ast.statements.ASTStatement;
+import com.fujitsu.vdmj.syntax.StatementReader;
+
+import com.fujitsu.vdmj.ast.definitions.ASTDefinition;
+import com.fujitsu.vdmj.syntax.DefinitionReader;
+
+import com.fujitsu.vdmj.ast.expressions.ASTExpression;
+import com.fujitsu.vdmj.syntax.ExpressionReader;
+
+import com.fujitsu.vdmj.ast.modules.ASTModule;
+import com.fujitsu.vdmj.syntax.ModuleReader;
 
 
 public class ASTVDMSpatialAnnotation extends ASTAnnotation
@@ -31,10 +40,35 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 	}
 
 	@Override
+	public void astAfter(DefinitionReader reader, ASTDefinition def)
+	{
+		System.out.println("--------------- ASTDefinition --------------");
+		System.out.println("Name: "+def.name.name+", kind: "+def.kind());
+		System.out.println("toString: "+ def.toString());
+	}
+
+	@Override
+	public void astAfter(StatementReader reader, ASTStatement stmt)
+	{
+		System.out.println("--------------- ASTStatement --------------");
+	}
+
+	@Override
+	public void astAfter(ExpressionReader reader, ASTExpression exp)
+	{
+		System.out.println("--------------- ASTExpression --------------");
+	}
+
+	@Override
+	public void astAfter(ModuleReader reader, ASTModule module)
+	{
+		System.out.println("--------------- ASTModule --------------");
+	}
+
+	@Override
 	public void astAfter(ClassReader reader, ASTClassDefinition clazz)
 	{
 		System.out.println(args);
-
 		
 		// read file .sp
 		// String filename = "scenario1.sp";
@@ -64,11 +98,14 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 			if(clazz.definitions.get(i).kind() == "type"){
 				geometryTypes.add(clazz.definitions.get(i));
 			}
-			if(clazz.definitions.get(i).kind() == "explicit operation"){
+			else if(clazz.definitions.get(i).kind() == "explicit operation"){
 				geometryRelations.add(clazz.definitions.get(i));
 			}
-			if(clazz.definitions.get(i).kind() == "instance variable"){
+			else if(clazz.definitions.get(i).kind() == "instance variable"){
 				geometryInstances.add(clazz.definitions.get(i));
+			}
+			else {
+				System.out.println("Class def "+i+" = "+clazz.definitions.get(i).kind());
 			}
 		}
 
