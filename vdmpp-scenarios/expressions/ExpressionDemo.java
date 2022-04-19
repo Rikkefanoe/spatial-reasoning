@@ -760,7 +760,7 @@ class z3Visitor implements ExprVisitor{
 
   @Override
   public void visit(BooleanValue e) {
-    last_z3_boolExpr = ctx.mkBoolConst(e.value);
+    // last_z3_boolExpr = ctx.mkBoolConst(e.value);
     
   }
 
@@ -798,7 +798,7 @@ class z3Visitor implements ExprVisitor{
     RatNum e1 = last_z3_RatNumExpr;
     e.right.accept(this);
     RatNum e2 = last_z3_RatNumExpr;
-    last_z3_RatNumExpr = ctx.mkAdd(e1,e2);    
+    // last_z3_RatNumExpr = ctx.mkAdd(e1,e2);    
   }
 
   @Override
@@ -807,7 +807,7 @@ class z3Visitor implements ExprVisitor{
     RatNum e1 = last_z3_RatNumExpr;
     e.right.accept(this);
     RatNum e2 = last_z3_RatNumExpr;
-    last_z3_RatNumExpr = ctx.mkSub(e1,e2);       
+    // last_z3_RatNumExpr = ctx.mkSub(e1,e2);       
   }
 
   @Override
@@ -816,7 +816,7 @@ class z3Visitor implements ExprVisitor{
     RatNum e1 = last_z3_RatNumExpr;
     e.right.accept(this);
     RatNum e2 = last_z3_RatNumExpr;
-    last_z3_RatNumExpr = ctx.mkMul(e1,e2);       
+    // last_z3_RatNumExpr = ctx.mkMul(e1,e2);       
   }
 
   @Override
@@ -1407,7 +1407,7 @@ public class ExpressionDemo {
 
 public static void testz3(){
   Expr e = new ExistsExpr(new Variable("X"),new NotExpr(new EqualArithExpr(new Variable("X"), new Variable("X"))));
-
+  // exist x not(x==x)
     
   z3Visitor v = new z3Visitor();
   
@@ -1419,7 +1419,6 @@ public static void testz3(){
   
   Status q = s.check();
   System.out.println("Solver says: "+q);
-
 
 }
     
