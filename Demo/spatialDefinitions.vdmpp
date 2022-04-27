@@ -2,6 +2,10 @@
 class VDMGeometry
 
 types
+
+public Number ::
+        x : rat;
+
 public  Point2d ::
             x : rat
             y : rat;

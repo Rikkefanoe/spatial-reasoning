@@ -51,6 +51,9 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 	// get all geometry instances
 	private static List<ASTDefinition> geometryInstances = new Vector<ASTDefinition>();
 
+	private static List<VDMGeometry> vdmGeometries = new Vector<VDMGeometry>();
+
+
 	public ASTVDMSpatialAnnotation(LexIdentifierToken name)
 	{
 		super(name);
@@ -133,7 +136,6 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 		}
 
 		int nInstances = scenarioList.size();
-		List<VDMGeometry> vdmGeometries = new Vector<VDMGeometry>();
 
 		List<String> arrangedTypes = arrangeTypes(geometryTypes);
 		System.out.println("Arranged types: "+arrangedTypes);
@@ -344,27 +346,59 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 
 	private	void checkRelation(String scenario){
 		// intersects l1 l2
+		System.out.println("Checking relation : " + scenario);
+		String[] scenarioParts = scenario.split(" ");
 
 		for (ASTDefinition rel : geometryRelations) {
-			if (rel.name.name.equals(scenario.substring(0,scenario.indexOf(" ")))) {
-
+			if (rel.name.name.equals(scenarioParts[0])) {
 				ASTExplicitOperationDefinition expOpDef = (ASTExplicitOperationDefinition) rel;
 				ASTStatement defbody = expOpDef.body;
+
+				// check arg of right type
+				String[] args = numberOfArgs(expOpDef);
+				// System.out.println("n args : " + args[0]);
+				if(args.length != scenarioParts.length-1){
+					System.out.println("wrong number of arguments for this relation");
+					return;
+				}
+				Integer[] arguments = new Integer[args.length];
+				for(int i = 0; i<args.length; i++){
+
+					for (VDMGeometry obj : vdmGeometries) {
+						if(obj.getName().equals(scenarioParts[i+1].trim()) ){	
+							Double val = Double.parseDouble(obj.getValue());						
+							arguments[i] = val.intValue();
+						}						
+					}
+					if(arguments[i] == null){
+						System.out.println("error arg "+ scenarioParts[i+1] + " does not exist");
+					}
+				}
+
+				//compose function of nested types somehow
 				if(defbody.kind() == "return"){
 					ASTReturnStatement body = (ASTReturnStatement) defbody;
 					ASTExpression innerbody = body.expression;
 					// System.out.println("body : " + innerbody.toString() + " kind : " + innerbody.kind());
-					UnRollExpression(innerbody);
+					String expr = getz3Expression(innerbody);
+
+					if(expr == "EqualArithExpr"){
+					ExpressionDemo obj = new ExpressionDemo();
+
+					Expr e = new EqualArithExpr(new Number(arguments[0]), new Number(arguments[1]));
+
+					z3Visitor v = new z3Visitor();
+					e.accept(v);
+
+					String result = obj.createSolver(v);
+					System.out.println("Solver says: "+result);
+					}
 				}
 
 
-				// check arg of right type
-				int nArgs = numberOfArgs(expOpDef);
-				System.out.println("n args : " + nArgs);
 
 
 
-				//compose function of nested types somehow
 
 				// use demo visitor to check property
 
@@ -373,39 +407,29 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 
 	}
 
-	private int numberOfArgs(ASTExplicitOperationDefinition def){
+	private String[] numberOfArgs(ASTExplicitOperationDefinition def){
 		ASTPatternList pattern = def.parameterPatterns;
 		String[] args = pattern.toString().trim().split(",");
 		// debug
-		System.out.println("pattern: " +  pattern.toString());
-		return args.length;
+		// System.out.println("pattern: " +  pattern.toString());
+		return args;
 	}
 
-	private void UnRollExpression(ASTExpression expression){
-		System.out.println("body : " + expression.toString() + " kind : " + expression.kind());
+	private String getz3Expression(ASTExpression expression){
+		// System.out.println("body : " + expression.toString() + " kind : " + expression.kind());
 
-		if(expression.kind() == "equals"){
-		
-			ExpressionDemo obj = new ExpressionDemo();
-
-			Expr e = new EqualArithExpr(new Number(1), new Number(1));
-
-			z3Visitor v = new z3Visitor();
-			e.accept(v);
-			
-			String result = obj.createSolver(v);
-			System.out.println("Solver says: "+result);
-			
-
+		if(expression.kind() == "equals"){			
+			return "EqualArithExpr";
 		}
 
 
-		if(expression.kind()=="exists"){
-			ASTExistsExpression exp = (ASTExistsExpression) expression;
-			ASTMultipleBindList bindlist = exp.bindList;
-			System.out.println(bindlist.toString());
-			System.out.println(exp.predicate.toString());
-		}
+		// if(expression.kind()=="exists"){
+		// 	ASTExistsExpression exp = (ASTExistsExpression) expression;
+		// 	ASTMultipleBindList bindlist = exp.bindList;
+		// 	System.out.println(bindlist.toString());
+		// 	System.out.println(exp.predicate.toString());
+		// }
+		return "none";
 
 
 	}

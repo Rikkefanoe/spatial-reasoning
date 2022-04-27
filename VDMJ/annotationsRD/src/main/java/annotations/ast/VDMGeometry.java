@@ -31,6 +31,15 @@ public class VDMGeometry extends Value{
         attributes.put(s, v);
     }
 
+    public String getValue(){
+        String retVal= null;
+        for (Map.Entry<String, Value> pair : attributes.entrySet()) {
+                retVal = (pair.getValue().toString());   
+        }
+        return retVal;
+
+    }
+
     public String toString(){
         String res = name +" "+ type + " ";
         List<String> attributeList = new ArrayList<>(attributes.keySet());
