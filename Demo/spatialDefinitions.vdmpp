@@ -1,0 +1,57 @@
+--@VDMSpatial(scenarioTests.sp)
+class VDMGeometry
+
+types
+public  Point2d ::
+            x : rat
+            y : rat;
+
+public LineSeg ::
+            s : Point2d
+            e : Point2d;
+
+operations
+public
+Coincident: Point2d * Point2d ==> bool
+Coincident(a,b) == return (a.x = b.x and a.y = b.y);
+
+public
+Collinear : Point2d * LineSeg ==> bool
+Collinear(p,l) == return ((p.y - l.s.y) * (l.e.x - l.s.x) - (l.e.y - l.s.y) * (p.x - l.s.x) = 0);
+
+public
+InBox : Point2d * LineSeg ==> bool
+InBox(p,l) == return ( ((l.s.x < l.e.x and l.s.x <= p.x and p.x <=l.e.x) -- linesegment x start is before end and point is inbetween   
+                        or
+                        (l.e.x < l.s.x and l.e.x <= p.x and p.x <=l.s.x)) -- linesegment x end is before start and point is inbetween  
+                        and
+                       ((l.s.y < l.e.y and l.s.y <= p.y and p.y <=l.e.y) -- linesegment y start is before end and point is inbetween                     
+                        or
+                        (l.e.y < l.s.y and l.e.y <= p.y and p.y <=l.s.y))); -- linesegment y end is before start and point is inbetween  
+
+
+public
+On : Point2d * LineSeg ==> bool
+On(p,l) == return (Collinear(p,l) and InBox(p,l));
+
+public
+Intersects : LineSeg * LineSeg ==> bool
+Intersects(a,b) == return (exists p : Point2d & On(p,a) and On(p,b));
+
+public
+easyCheck : rat * rat ==> bool
+easyCheck(a,b) == return a = b;
+
+end VDMGeometry
+
+-- p1x Point2d 0 0
+-- p1y Point2d 3 3
+
+-- p2x Point2d 0 3
+-- p2y Point2d 3 0
+
+-- l1 LineSeg p1x p1y
+-- l2 LineSeg p2x p2y
+
+
+
