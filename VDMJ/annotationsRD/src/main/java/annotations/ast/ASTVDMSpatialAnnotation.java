@@ -15,6 +15,7 @@ import com.fujitsu.vdmj.ast.annotations.ASTAnnotation;
 import com.fujitsu.vdmj.ast.lex.LexIdentifierToken;
 import com.fujitsu.vdmj.syntax.ClassReader;
 import com.fujitsu.vdmj.ast.definitions.ASTClassDefinition;
+import com.fujitsu.vdmj.ast.definitions.ASTExplicitOperationDefinition;
 
 import com.fujitsu.vdmj.ast.statements.ASTStatement;
 import com.fujitsu.vdmj.syntax.StatementReader;
@@ -27,7 +28,6 @@ import com.fujitsu.vdmj.syntax.ExpressionReader;
 
 import com.fujitsu.vdmj.ast.modules.ASTModule;
 import com.fujitsu.vdmj.syntax.ModuleReader;
-
 
 public class ASTVDMSpatialAnnotation extends ASTAnnotation
 {
@@ -45,6 +45,12 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 		System.out.println("--------------- ASTDefinition --------------");
 		System.out.println("Name: "+def.name.name+", kind: "+def.kind());
 		System.out.println("toString: "+ def.toString());
+		if (def.kind().equals("explicit operation")){
+			System.out.println("typecast to ASTExplicitOperationDefinition");
+			ASTExplicitOperationDefinition expOpDef = (ASTExplicitOperationDefinition) def;
+			ASTStatement defbody = expOpDef.body;
+			System.out.println("body kind: " + defbody.kind());
+		}
 	}
 
 	@Override
@@ -278,7 +284,7 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 			}
 			// Check if parameter references other instance
 			for(int j = 0; j<geometries.size(); j++){
-				if(geometries.get(j).equals(instanceProps[i])){
+				if(geometries.get(j).getName().equals(instanceProps[i])){
 					temp = geometries.get(j);
 					break;
 				}
@@ -287,7 +293,7 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 				attrVal = temp;
 			} else { // Here we assume rationals/reals are the only alternative to defined types
 				RealValue realVal = new RealValue();
-				realVal.s = instanceProps[i];
+				realVal.v = Double.parseDouble(instanceProps[i]);
 				attrVal = realVal;
 			}
 			newGeometry.addAttribute(attrKey, attrVal);
