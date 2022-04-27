@@ -15,7 +15,6 @@ import com.fujitsu.vdmj.ast.annotations.ASTAnnotation;
 import com.fujitsu.vdmj.ast.lex.LexIdentifierToken;
 import com.fujitsu.vdmj.syntax.ClassReader;
 import com.fujitsu.vdmj.ast.definitions.ASTClassDefinition;
-import com.fujitsu.vdmj.ast.definitions.ASTExplicitOperationDefinition;
 
 import com.fujitsu.vdmj.ast.statements.ASTStatement;
 import com.fujitsu.vdmj.syntax.StatementReader;
@@ -29,9 +28,28 @@ import com.fujitsu.vdmj.syntax.ExpressionReader;
 import com.fujitsu.vdmj.ast.modules.ASTModule;
 import com.fujitsu.vdmj.syntax.ModuleReader;
 
+import com.fujitsu.vdmj.ast.definitions.ASTExplicitOperationDefinition;
+import com.fujitsu.vdmj.ast.definitions.visitors.ASTDefinitionVisitor;
+
+import com.fujitsu.vdmj.ast.patterns.ASTPatternList;
+import com.fujitsu.vdmj.ast.statements.ASTReturnStatement;
+import com.fujitsu.vdmj.ast.expressions.ASTExistsExpression;
+import com.fujitsu.vdmj.ast.patterns.ASTMultipleBindList;
+
+
+import annotations.ast.ExpressionDemo;
+
+
 public class ASTVDMSpatialAnnotation extends ASTAnnotation
 {
 	private static final long serialVersionUID = 1L;
+
+	// get all geometry types
+	private static List<ASTDefinition> geometryTypes = new Vector<ASTDefinition>();
+	// get all geometry relations
+	private static List<ASTDefinition> geometryRelations = new Vector<ASTDefinition>();
+	// get all geometry instances
+	private static List<ASTDefinition> geometryInstances = new Vector<ASTDefinition>();
 
 	public ASTVDMSpatialAnnotation(LexIdentifierToken name)
 	{
@@ -42,21 +60,24 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 	@Override
 	public void astAfter(DefinitionReader reader, ASTDefinition def)
 	{
-		System.out.println("--------------- ASTDefinition --------------");
-		System.out.println("Name: "+def.name.name+", kind: "+def.kind());
-		System.out.println("toString: "+ def.toString());
-		if (def.kind().equals("explicit operation")){
-			System.out.println("typecast to ASTExplicitOperationDefinition");
-			ASTExplicitOperationDefinition expOpDef = (ASTExplicitOperationDefinition) def;
-			ASTStatement defbody = expOpDef.body;
-			System.out.println("body kind: " + defbody.kind());
-		}
+		// System.out.println("--------------- ASTDefinition --------------");
+		// System.out.println("Name: "+def.name.name+", kind: "+def.kind());
+		// System.out.println("toString: "+ def.toString());
+		// if (def.kind().equals("explicit operation")){
+		// 	System.out.println("typecast to ASTExplicitOperationDefinition");
+		// 	ASTExplicitOperationDefinition expOpDef = (ASTExplicitOperationDefinition) def;
+		// 	ASTStatement defbody = expOpDef.body;
+		// 	System.out.println("body kind: " + defbody.kind());
+		// }
 	}
 
 	@Override
 	public void astAfter(StatementReader reader, ASTStatement stmt)
 	{
 		System.out.println("--------------- ASTStatement --------------");
+		System.out.println(stmt);
+
+
 	}
 
 	@Override
@@ -93,12 +114,6 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 		// get all elements in class
 		// available in clazz.definitions
 
-		// get all geometry types
-		List<ASTDefinition> geometryTypes = new Vector<ASTDefinition>();
-		// get all geometry relations
-		List<ASTDefinition> geometryRelations = new Vector<ASTDefinition>();
-		// get all geometry instances
-		List<ASTDefinition> geometryInstances = new Vector<ASTDefinition>();
 
 		for(int i =0; i<clazz.definitions.size(); i++){
 			if(clazz.definitions.get(i).kind() == "type"){
@@ -106,6 +121,8 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 			}
 			else if(clazz.definitions.get(i).kind() == "explicit operation"){
 				geometryRelations.add(clazz.definitions.get(i));
+				// System.out.println(clazz.definitions.get(i).name.name);
+
 			}
 			else if(clazz.definitions.get(i).kind() == "instance variable"){
 				geometryInstances.add(clazz.definitions.get(i));
@@ -121,19 +138,27 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 		List<String> arrangedTypes = arrangeTypes(geometryTypes);
 		System.out.println("Arranged types: "+arrangedTypes);
 
-		// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+		// do some type checking
 		for(int i = 0; i<scenarioList.size(); i++){
 			boolean status = true;
+			boolean isRelation = false;
 			if(!checkType(scenarioList.get(i), arrangedTypes, vdmGeometries)){
 				status = false;
 			}
-			if(!status){
+			if(isRelation(scenarioList.get(i))){
+				isRelation = true;
+			}
+			if(!status && !isRelation){
 				System.out.println("Type check failed.");
-			} else{
+			} else if(status && !isRelation){
 				status = parseToInstance(scenarioList.get(i), arrangedTypes, vdmGeometries);
 			}
-			if(!status){
+			if(!status && !isRelation){
 				System.out.println("Parsing failed.");
+			}
+			if(isRelation){
+				// check relation
+				checkRelation(scenarioList.get(i));
 			}
 		}
 
@@ -301,5 +326,88 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 		geometries.add(newGeometry);
 		return res;
 	};
+
+	private boolean isRelation(String def){
+		int i = def.indexOf(" ");
+		String s = def.substring(0, i); 
+		boolean ret = false;
+
+		for (ASTDefinition astDefinition : geometryRelations) {
+			// System.out.println(astDefinition.name.name);
+			if(s.equals(astDefinition.name.name)){
+				ret =  true;
+			}
+
+		}
+		return ret;
+	};
+
+	private	void checkRelation(String scenario){
+		// intersects l1 l2
+
+		for (ASTDefinition rel : geometryRelations) {
+			if (rel.name.name.equals(scenario.substring(0,scenario.indexOf(" ")))) {
+
+				ASTExplicitOperationDefinition expOpDef = (ASTExplicitOperationDefinition) rel;
+				ASTStatement defbody = expOpDef.body;
+				if(defbody.kind() == "return"){
+					ASTReturnStatement body = (ASTReturnStatement) defbody;
+					ASTExpression innerbody = body.expression;
+					// System.out.println("body : " + innerbody.toString() + " kind : " + innerbody.kind());
+					UnRollExpression(innerbody);
+				}
+
+
+				// check arg of right type
+				int nArgs = numberOfArgs(expOpDef);
+				System.out.println("n args : " + nArgs);
+
+
+
+				//compose function of nested types somehow
+
+				// use demo visitor to check property
+
+			}		
+		}
+
+	}
+
+	private int numberOfArgs(ASTExplicitOperationDefinition def){
+		ASTPatternList pattern = def.parameterPatterns;
+		String[] args = pattern.toString().trim().split(",");
+		// debug
+		System.out.println("pattern: " +  pattern.toString());
+		return args.length;
+	}
+
+	private void UnRollExpression(ASTExpression expression){
+		System.out.println("body : " + expression.toString() + " kind : " + expression.kind());
+
+		if(expression.kind() == "equals"){
+		
+			ExpressionDemo obj = new ExpressionDemo();
+
+			Expr e = new EqualArithExpr(new Number(1), new Number(1));
+
+			z3Visitor v = new z3Visitor();
+			e.accept(v);
+			
+			String result = obj.createSolver(v);
+			System.out.println("Solver says: "+result);
+			
+
+		}
+
+
+		if(expression.kind()=="exists"){
+			ASTExistsExpression exp = (ASTExistsExpression) expression;
+			ASTMultipleBindList bindlist = exp.bindList;
+			System.out.println(bindlist.toString());
+			System.out.println(exp.predicate.toString());
+		}
+
+
+	}
 
 }

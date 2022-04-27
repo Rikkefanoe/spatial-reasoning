@@ -2,7 +2,7 @@ package annotations.ast;
 
 public class RealValue extends Value{
     public double v;
-    public String s;
+    // public String s;
 
     @Override
     public String toString(){
