@@ -1432,7 +1432,7 @@ public static String createSolver(z3Visitor v){
   
   Status q = s.check();
   if(q == Status.SATISFIABLE){
-    System.out.println("\n" + s.getModel());
+    System.out.println(s.getModel());
   }
 
   // System.out.println("Solver says: "+q);

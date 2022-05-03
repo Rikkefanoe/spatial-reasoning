@@ -103,7 +103,11 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 		// read file .sp
 		// String filename = "scenario1.sp";
 		String f = args.toString();
-		String filename = f.replaceAll("[()]", "");;
+		String filename = f.replaceAll("[()]", "");
+		if(!checkFilename(filename)){
+			System.out.println("wrong file passed in the annotation");
+			return;
+		}
 		List<String> scenarioList = new ArrayList<>();
 
 		try {
@@ -198,6 +202,17 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 			arrangedTypes.add(sb.toString());
 		}
 		return arrangedTypes;
+	}
+
+	private static boolean checkFilename(String filename){
+		String[] file = filename.split("\\.");
+		int extentions = file.length;
+		if(file[extentions-1].trim().equals("sp")){
+			return true;
+		}else{
+			return false;
+		}
+
 	}
 
 	// https://mkyong.com/java/java-how-to-read-a-file-into-a-list/
@@ -384,8 +399,8 @@ public class ASTVDMSpatialAnnotation extends ASTAnnotation
 
 					if(expr == "EqualArithExpr"){
 					ExpressionDemo obj = new ExpressionDemo();
-
 					Expr e = new EqualArithExpr(new Number(arguments[0]), new Number(arguments[1]));
+					// Expr e = new EqualArithExpr(new Variable("X"), new Variable("X"));
 
 					z3Visitor v = new z3Visitor();
 					e.accept(v);
