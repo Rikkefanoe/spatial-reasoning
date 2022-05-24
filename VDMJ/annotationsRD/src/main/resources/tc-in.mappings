@@ -4,5 +4,3 @@
 
 # annotations
 package annotations.tc to annotations.in;
-map TCGeometryAnnotation{name, args} to INGeometryAnnotation(name, args);
-
