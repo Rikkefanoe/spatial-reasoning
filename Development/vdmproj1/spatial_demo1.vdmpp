@@ -1,5 +1,5 @@
 
-/*@VDMSpatial(scenario1.sp) */
+/*@Geometry(scenario1.sp) */
 -- class spatial_demo1
 class VDMGeometry
 types
@@ -11,7 +11,11 @@ point2D ::
 public 
 circle ::
     center: point2D
-    radius: nat
+    radius: nat;
+
+public
+number ::
+    x : nat;
     
 instance variables
     p1 : point2D := mk_point2D(2,2);
