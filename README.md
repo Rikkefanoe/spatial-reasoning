@@ -9,7 +9,7 @@ The spatial relations are defined in VDM++ (https://www.overturetool.org/downloa
 ### The repository is structured with 3 folders: 
 >**Demo**
 - Includes a definition file, scenario file, z3 jar, vdmj annotation jar and vdmj that are used to execute a small demo to evaluate the equality of two numbers for proof of concept. 
- - To run the demo, change directory to the DEMO folder and run: *java -cp ".;vdmj-4.4.5.jar;annotationsRD-4.4.5-SNAPSHOT.jar;com.microsoft.z3.jar" com.fujitsu.vdmj.VDMJ  -annotations -vdmpp .\spatialDefinitions.vdmpp*
+ - To run the demo, change directory to the Demo folder and run: *java -cp ".;vdmj-4.4.5.jar;annotationsRD-4.4.5-SNAPSHOT.jar;com.microsoft.z3.jar" com.fujitsu.vdmj.VDMJ  -annotations -vdmpp .\spatialDefinitions.vdmpp*
  
 >Development
 - Includes subfolders:
