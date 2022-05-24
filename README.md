@@ -22,6 +22,6 @@ The spatial relations are defined in VDM++ (https://www.overturetool.org/downloa
 
   - vdmproj1 (early prototype source)
 >VDMJ
-- includes the folder: *anntationsRD* which is the actual source files containing the annotation '@VDMSpatial(...)', the z3 visitor and the z3 evaluation. 
+- includes the folder: *anntationsRD* which is the actual source files containing the annotation '@VDMSpatial(...)', the z3 visitor and the z3 evaluation. The path for finding the actual source is: spatial-reasoning/VDMJ/annotationsRD/src/main/java/annotations/ast/
 - To use this project for further development the complete folder *annotationsRD* should be copied into the VDMJ source code where it can be compiled using 'mvn clean install' from within the folder. 
 
